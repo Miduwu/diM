@@ -20,7 +20,6 @@ class Tools(commands.Cog):
     async def cc(self, ctx: commands.Context, sub_command: str = None, name: str = None, *, any_content: str = None):
         if not sub_command:
             return await util.throw_error(ctx, text='You need to provide a subcommand name: `add`, `delete`, `edit`, `list`')
-        print(f'"{sub_command}"')
         if sub_command.lower() == 'add':
             if not name:
                 return await util.throw_error(ctx, text='You need to give a custom command name')
@@ -57,10 +56,12 @@ class Tools(commands.Cog):
             db.set(f'{ctx.guild.id}.commands', [cmd for cmd in cmds if not (cmd['name'] == name.lower())], 'Guilds')
             await util.throw_fine(ctx, text=f'**{name}** was deleted successfully!', bold=False)
         elif sub_command.lower() == 'list' or sub_command.lower() == 'all':
-            cmds = '\n'.join(list(map(lambda c: f"> **`{c['name']}`**", db.get(f'{ctx.guild.id}.commands', 'Guilds') or []))) or 'No custom commands yet.'
-            print(cmds)
+            cmds = _.chunk(db.get(f'{ctx.guild.id}.commands', 'Guilds') or [], 10)
+            if not len(cmds):
+                return await util.throw_error(ctx, text='This server doesnt have custom commands yet.')
             emb = discord.Embed(colour=3447003)
-            emb.add_field(name='Custom commands:', value=cmds)
+            for group in cmds:
+                emb.add_field(name=f'Group {cmds.index(group) + 1}', value='\n'.join(list(map(lambda c: f"> {group.index(c) + 1} **`{c['name']}`**", group))) or 'No custom commands yet.', inline=True)
             emb.set_author(name=f'{ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.display_avatar)
             await ctx.send(embed=emb)
         else:
