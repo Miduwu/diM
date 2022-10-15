@@ -38,8 +38,10 @@ class Dev(commands.Cog):
     async def _reload(self, ctx: commands.Context, extension = None):
         if not os.path.exists(f'./cogs/{extension}.py'):
             return await util.throw_error(ctx, text="That cog doesn't exist!")
+        old = ctx.bot.commands
         await ctx.bot.reload_extension(f'cogs.{extension}')
-        await util.throw_fine(ctx, text=f'**cogs.{extension}** successfully reloaded!', bold=False)
+        view = discord.ui.View().add_item(discord.ui.Button(style=discord.ButtonStyle.blurple, label=f'Commands', custom_id="general", disabled=True)).add_item(discord.ui.Button(style=discord.ButtonStyle.red, label=f'Before: {len(old)}', custom_id="before", disabled=True)).add_item(discord.ui.Button(style=discord.ButtonStyle.green, label=f'After: {len(ctx.bot.commands)}', custom_id="after", disabled=True))
+        await util.throw_fine(ctx, text=f'**cogs.{extension}** successfully reloaded!', view=view, bold=False, defer=False)
     
     @commands.command(name='load')
     @commands.is_owner()

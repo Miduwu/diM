@@ -1,4 +1,5 @@
 from typing import Literal
+from datetime import datetime
 import discord
 from main import util, db
 from discord.ext import commands
@@ -22,6 +23,7 @@ class Listeners(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print('diM is online')
+        util.uptime = datetime.now()
     
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
