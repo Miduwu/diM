@@ -6,6 +6,7 @@ from discord.ext import commands
 from main import util, db
 import discord
 import os
+import aiohttp
 
 class Dev(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:

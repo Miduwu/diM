@@ -18,7 +18,7 @@ class Listeners(commands.Cog):
             return await util.throw_error(ctx, text=f"**{ctx.author.name}**, you **don't** own this bot", bold=False)
         elif isinstance(error, commands.MissingPermissions):
             return await util.throw_error(ctx, text=f"**{ctx.author.name}**, you **don't** have permissions enough to use this command", bold=False)
-        raise error
+        return
 
     @commands.Cog.listener()
     async def on_ready(self):

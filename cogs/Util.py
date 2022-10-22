@@ -1,6 +1,9 @@
 import discord
+from calendar import month
 from discord.ext import commands
 from main import util
+from datetime import datetime
+from deep_translator import GoogleTranslator
 
 class Util(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -37,11 +40,48 @@ class Util(commands.Cog):
     @commands.command(name='servericon', aliases=['icon'])
     async def icon(self, ctx: commands.Context):
         if not ctx.guild.icon:
-            return await util.throw_error(ctx, text="This server **doesn't** have an icon yet.", bold=False)
+            return await util.throw_error(ctx, text="This server **doesn't** have an icon yet", bold=False)
         embed = discord.Embed(colour=3447003)
         embed.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon.url)
         embed.set_image(url=ctx.guild.icon.url.replace('.webp', '.png'))
         await ctx.send(embed=embed)
+    
+    @commands.command(name='calendar', aliases=['date'])
+    async def _calendar(self, ctx: commands.Context):
+        text = month(datetime.now().year, datetime.now().month)
+        t = f':calendar: **{datetime.now().year} {datetime.now().strftime("%B")}**\n```{text}```'
+        await ctx.send(t)
+    
+    @commands.command(name='translate', aliases=['tr'])
+    async def translate(self, ctx: commands.Context, target: str = None, *, text: str = None):
+        if not text or not target:
+            return await util.throw_error(ctx, text=f"Missing arguments, use: `{ctx.prefix}help {ctx.command.name}`")
+        try:
+            target = target.lower().replace('zh-cn', 'zh-CN').replace('zh-tw', 'zh-TW').replace('ch', 'zh-CN')
+            g = GoogleTranslator(source="auto", target='en')
+            if target not in list(g.get_supported_languages(as_dict=True).values()):
+                b = discord.ui.Button(style=discord.ButtonStyle.blurple, label="Show supported languages")
+                async def _i(i: discord.Interaction):
+                    if i.user.id is not ctx.author.id:
+                        return await i.response.send_message("This interaction isn't for you <:bloboohcry:1011458104782758009>", ephemeral=True)
+                    langs = ', '.join(list(map(lambda lang: f'**`{lang}`**', list(g.get_supported_languages(as_dict=True).values()))))
+                    await i.response.send_message(langs, ephemeral=True)    
+                b.callback = _i
+                v = discord.ui.View(timeout=60.0).add_item(b)
+                message = await util.throw_error(ctx, text="Invalid target language provided", view=v, defer=False)
+                v.message = message
+                async def _t():
+                    try:
+                        b.disabled = True
+                        await v.message.edit(view=v.clear_items().add_item(b))
+                    except:
+                        pass
+                v.on_timeout = _t
+                return
+            g.target = target
+            await ctx.send(f'**__{g.source.upper()}__ > __{g.target.upper()}__**```fix\n{g.translate(text)}```')
+        except:
+            await util.throw_error(ctx, text="Invalid translation, something went wrong")
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Util(bot))

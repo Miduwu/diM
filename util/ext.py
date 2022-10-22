@@ -1,6 +1,8 @@
+from typing import Literal
 from discord.ext import commands
-from time import sleep
+from asyncio import sleep
 import discord
+import aiohttp
 
 class Util:
     def __init__(self, bot: commands.Bot) -> None:
@@ -11,8 +13,10 @@ class Util:
         try:
             m = await context.send(content=f'**{text}** <:bloboohcry:1011458104782758009>' if bold else text + ' <:bloboohcry:1011458104782758009>', view=view)
             if defer:
-                sleep(7)
+                await sleep(7)
                 await m.delete()
+            else:
+                return m
         except:
             pass
     
@@ -20,7 +24,22 @@ class Util:
         try:
             m = await context.send(content=f'**{text}** <:blobheart:1011458084239056977>' if bold else text + ' <:blobheart:1011458084239056977>', view=view)
             if defer:
-                sleep(7)
+                await sleep(7)
                 await m.delete()
+            else:
+                return m
         except:
             pass
+    
+    async def request(self, *, url: str, extract: Literal['json', 'read', 'text'] = 'json'):
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url=url) as res:
+                    if extract.lower() == 'json':
+                        return await res.json()
+                    elif extract.lower() == 'read':
+                        return await res.read()
+                    elif extract.lower() == 'text':
+                        return await res.text()
+        except:
+            return None
