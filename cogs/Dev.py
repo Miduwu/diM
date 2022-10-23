@@ -6,11 +6,11 @@ from discord.ext import commands
 from main import util, db
 import discord
 import os
-import aiohttp
 
-class Dev(commands.Cog):
+class Dev(commands.GroupCog, name="mid"):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+        super().__init__()
     
     @commands.command(name='eval', aliases=['ev', 'e'])
     @commands.is_owner()
@@ -34,15 +34,20 @@ class Dev(commands.Cog):
 
         await ctx.send(content=f'```py\n{">>> " + stdout.getvalue() if stdout.getvalue() else "[ No output ]" }```')
     
-    @commands.command(name='reload', aliases=['update'])
+    @discord.app_commands.command(name='reload', description="Reload a cog")
     @commands.is_owner()
-    async def _reload(self, ctx: commands.Context, extension = None):
+    async def _reload(self, i: discord.Interaction, extension: str):
         if not os.path.exists(f'./cogs/{extension}.py'):
-            return await util.throw_error(ctx, text="That cog doesn't exist!")
-        old = ctx.bot.commands
-        await ctx.bot.reload_extension(f'cogs.{extension}')
-        view = discord.ui.View().add_item(discord.ui.Button(style=discord.ButtonStyle.blurple, label=f'Commands', custom_id="general", disabled=True)).add_item(discord.ui.Button(style=discord.ButtonStyle.red, label=f'Before: {len(old)}', custom_id="before", disabled=True)).add_item(discord.ui.Button(style=discord.ButtonStyle.green, label=f'After: {len(ctx.bot.commands)}', custom_id="after", disabled=True))
-        await util.throw_fine(ctx, text=f'**cogs.{extension}** successfully reloaded!', view=view, bold=False, defer=False)
+            return await util.throw_error(i, text="That cog doesn't exist!")
+        old = self.bot.commands
+        await self.bot.reload_extension(f'cogs.{extension}')
+        view = discord.ui.View().add_item(discord.ui.Button(style=discord.ButtonStyle.blurple, label=f'Commands', custom_id="general", disabled=True)).add_item(discord.ui.Button(style=discord.ButtonStyle.red, label=f'Before: {len(old)}', custom_id="before", disabled=True)).add_item(discord.ui.Button(style=discord.ButtonStyle.green, label=f'After: {len(self.bot.commands)}', custom_id="after", disabled=True))
+        await util.throw_fine(i, text=f'**cogs.{extension}** successfully reloaded!', view=view, bold=False)
+    
+    @discord.app_commands.command(name='sync', description="Sync all slash commands")
+    @commands.is_owner()
+    async def _sync(self, i: discord.Interaction):
+        await util.throw_fine(i, text="Synced commands sucessfully!")
     
     @commands.command(name='load')
     @commands.is_owner()

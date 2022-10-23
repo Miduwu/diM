@@ -83,5 +83,24 @@ class Util(commands.Cog):
         except:
             await util.throw_error(ctx, text="Invalid translation, something went wrong")
 
+    @commands.command(name='weather')
+    async def weather(self, ctx: commands.Context, *, text: str = None):
+        if not text:
+            return await util.throw_error(ctx, text=f"Missing arguments, use: `{ctx.prefix}help {ctx.command.name}`")
+        v = await util.request(url="https://api.miduwu.ga/json/weather", params={"query": text}, as_dict=True)
+        if not v or v.status != 200:
+            return await util.throw_error(ctx, text=f"Invalid city provided")
+        emb = discord.Embed(title=v.data["data"]["location"]["name"], color=3447003)
+        emb.set_author(name=f'{ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.display_avatar)
+        emb.add_field(name="Coordinates:", value=f'{v.data["data"]["location"]["lat"]}, {v.data["data"]["location"]["long"]}')
+        emb.add_field(name="Timezone:", value=v.data["data"]["location"]["timezone"])
+        emb.add_field(name="Temperature:", value=f'{v.data["data"]["current"]["temperature"]} °C')
+        emb.add_field(name="Sky:", value=v.data["data"]["current"]["skytext"])
+        emb.add_field(name="Humidity:", value=v.data["data"]["current"]["humidity"])
+        emb.add_field(name="Wind Speed:", value=v.data["data"]["current"]["windspeed"])
+        emb.set_thumbnail(url=v.data["data"]["current"]["imageUrl"])
+        emb.timestamp = datetime.now()
+        await ctx.send(embed=emb)
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(Util(bot))

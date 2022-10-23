@@ -13,7 +13,7 @@ class Listeners(commands.Cog):
         if isinstance(error, commands.CommandNotFound):
             return
         elif isinstance(error, commands.UserNotFound):
-            return await util.throw_error(ctx, text=f"**Missing or invalid user provided...**", bold=False)
+            return await util.throw_error(ctx, text=f"**Missing or invalid user provided**", bold=False)
         elif isinstance(error, commands.NotOwner):
             return await util.throw_error(ctx, text=f"**{ctx.author.name}**, you **don't** own this bot", bold=False)
         elif isinstance(error, commands.MissingPermissions):
@@ -24,6 +24,7 @@ class Listeners(commands.Cog):
     async def on_ready(self):
         print('diM is online')
         util.uptime = datetime.now()
+        await self.bot.tree.sync()
     
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
