@@ -24,7 +24,6 @@ class Listeners(commands.Cog):
     async def on_ready(self):
         print('diM is online')
         util.uptime = datetime.now()
-        await self.bot.tree.sync()
     
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
