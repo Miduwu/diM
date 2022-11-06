@@ -2,7 +2,8 @@ import discord
 import sys
 import datetime
 from discord.ext import commands
-from main import util
+from main import util, timeouts
+import asyncio
 
 class General(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -21,6 +22,11 @@ class General(commands.Cog):
         embed.set_thumbnail(url=ctx.bot.user.display_avatar)
         embed.set_footer(text=f'Uptime: {uptime} hrs.')
         await ctx.send(embed=embed)
+    @commands.command(name='cocacola')
+    @commands.is_owner()
+    async def test(self, ctx: commands.Context, time: str):
+        await ctx.send('antes')
+        await timeouts.add(time=int(time), id='test', data={"channel": ctx.channel.id, "author": ctx.author.id})
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(General(bot))

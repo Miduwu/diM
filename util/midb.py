@@ -113,6 +113,9 @@ class Database:
         except:
             return None
     
+    async def _is_there(self, key: str, table: str, to_see):
+        return to_see in self.get(key, table)
+    
     def _validate_table(self, name: str):
         '''
         Validate if this is a database table

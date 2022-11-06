@@ -1,7 +1,7 @@
 from typing import Literal
 from datetime import datetime
 import discord
-from main import util, db
+from main import util, db, timeouts
 from discord.ext import commands
 
 class Listeners(commands.Cog):
@@ -14,6 +14,8 @@ class Listeners(commands.Cog):
             return
         elif isinstance(error, commands.UserNotFound):
             return await util.throw_error(ctx, text=f"**Missing or invalid user provided**", bold=False)
+        elif isinstance(error, commands.MemberNotFound):
+            return await util.throw_error(ctx, text=f"**Missing or invalid member provided**", bold=False)
         elif isinstance(error, commands.NotOwner):
             return await util.throw_error(ctx, text=f"**{ctx.author.name}**, you **don't** own this bot", bold=False)
         elif isinstance(error, commands.MissingPermissions):
@@ -23,7 +25,6 @@ class Listeners(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print('diM is online')
-        util.uptime = datetime.now()
     
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):

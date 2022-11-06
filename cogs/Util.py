@@ -101,6 +101,13 @@ class Util(commands.Cog):
         emb.set_thumbnail(url=v.data["data"]["current"]["imageUrl"])
         emb.timestamp = datetime.now()
         await ctx.send(embed=emb)
+    
+    @commands.command(name='quote', aliases=['q'])
+    async def quote(self, ctx: commands.Context, url: str = None):
+        if not url:
+            return await util.throw_error(ctx, text=f"Missing arguments, use: `{ctx.prefix}help {ctx.command.name}`")
+            
+        
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Util(bot))

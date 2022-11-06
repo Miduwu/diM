@@ -3,7 +3,7 @@ import io
 import re
 from traceback import format_exception
 from discord.ext import commands
-from main import util, db
+from main import util, db, timeouts
 import discord
 import os
 
@@ -23,7 +23,7 @@ class Dev(commands.Cog):
         code = clean_code(text)
         if '--p' in code or '--print' in code:
             code = f'print({re.sub("--p(rint)?", "", code, flags=re.IGNORECASE)})'
-        local_variables = { "discord": discord, "commands": commands, "bot": commands.Bot, "ctx": ctx, "db": db }
+        local_variables = { "discord": discord, "commands": commands, "bot": commands.Bot, "ctx": ctx, "db": db, "timeouts": timeouts }
         stdout = io.StringIO()
         try:
             with contextlib.redirect_stdout(stdout):
