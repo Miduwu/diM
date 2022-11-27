@@ -2,7 +2,6 @@ import asyncio
 import discord
 import os
 import dotenv
-from datetime import datetime
 from util import execs, ext, midb, events
 from discord.ext import commands
 
@@ -18,7 +17,6 @@ async def Task(bot: commands.Bot):
 
 class diM(commands.Bot):
     async def setup_hook(self):
-        util.uptime = datetime.now()
         self.loop.create_task(Task(self))
 
 bot = diM(command_prefix=(lambda client, message: db.get(f'{message.guild.id}.prefix', 'Guilds') or '$'), owner_ids=[664261902712438784, 930588488590581850], strip_after_prefix=True, intents=discord.Intents.all())
