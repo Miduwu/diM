@@ -10,8 +10,13 @@ from typing import Optional
 class Util(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+
+    @commands.hybrid_group(name='user')
+    async def user(self, ctx: commands.Context):
+        '''Fetch some user information'''
+        ...
     
-    @commands.hybrid_command(name='avatar', aliases=['av', 'pfp'])
+    @user.command(name='avatar')
     @discord.app_commands.describe(member='The member to stalk')
     async def avatar(self, ctx: commands.Context, member: Optional[discord.Member]):
         '''Get someone's avatar'''
@@ -24,9 +29,9 @@ class Util(commands.Cog):
         embed.set_image(url=str(user.display_avatar).replace('.webp', '.png'))
         await ctx.send(embed=embed)
     
-    @commands.hybrid_command(name='user', aliases=['userinfo', 'whois'])
+    @user.command(name='info')
     @discord.app_commands.describe(member='The member to stalk')
-    async def user(self, ctx: commands.Context, member: Optional[discord.Member]):
+    async def userinfo(self, ctx: commands.Context, member: Optional[discord.Member]):
         '''Get someone's user info'''
         await ctx.defer()
         if member is None:
@@ -38,8 +43,13 @@ class Util(commands.Cog):
         emb.description = f'**¬ Tag:** {user.name}#{user.discriminator}\n**¬ ID:** `{user.id}`\n**¬ Highest role:** {member.top_role.mention if member else "~~None~~"}\n**¬ Created:** <t:{round(user.created_at.timestamp())}:D>\n**¬ Joined:** <t:{round(member.joined_at.timestamp())}:D>\n\n**¬ Roles [{len(member.roles) if member else "~~0~~"}]:**\n{", ".join(list(map(lambda r: r.mention, member.roles))) if member else "~~None~~"}'
         await ctx.send(embed=emb)
     
-    @commands.hybrid_command(name='server', aliases=['serverinfo'])
+    @commands.hybrid_group(name='server')
     async def server(self, ctx: commands.Context):
+        '''Fetch some server information'''
+        ...
+    
+    @server.command(name='info')
+    async def serverinfo(self, ctx: commands.Context):
         '''Get the server info'''
         await ctx.defer()
         emb = discord.Embed(colour=3447003)
@@ -48,7 +58,38 @@ class Util(commands.Cog):
         emb.add_field(name='<:blobhero:1011785174767382568> Staticts', value=f'**¬ Members:** {ctx.guild.member_count}\n**¬ Roles:** {len(ctx.guild.roles)}\n**¬ Channels:** {len(ctx.guild.channels)} (**Text:** {len(ctx.guild.text_channels)}, **Voice:** {len(ctx.guild.voice_channels)}, **Other:** {len(ctx.guild.channels) - len(ctx.guild.text_channels) - len(ctx.guild.voice_channels)})', inline=False)
         await ctx.send(embed=emb)
     
-    @commands.command(name='servericon', aliases=['icon'])
+    @server.command(name='role')
+    @discord.app_commands.describe(role='The role to fetch')
+    async def role(self, ctx: commands.Context, role: discord.Role):
+        '''Get a role info'''
+        await ctx.defer()
+        emb = discord.Embed(colour=role.colour or 3447003)
+        emb.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)
+        emb.description = f'**¬ Name:** {role.name}\n**¬ ID:** `{role.id}`\n**¬ Created:** <t:{round(role.created_at.timestamp())}:D>\n**¬ Hex:** {role.color}\n**¬ Position:** {role.position}'
+        emb.set_thumbnail(url=role.display_icon)
+        emb.set_footer(text=f'{ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.display_avatar)
+        await ctx.send(embed=emb)
+    
+    @server.command(name='channel')
+    @discord.app_commands.describe(channel='The channel to fetch')
+    async def channel(self, ctx: commands.Context, channel: Optional[discord.abc.GuildChannel]):
+        '''Get a channel info'''
+        if not channel:
+            channel = ctx.channel
+        await ctx.defer()
+        emb = discord.Embed(colour=3447003)
+        emb.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)
+        emb.description = f'**¬ Name:** {channel.name}\n**¬ ID:** `{channel.id}`\n**¬ Category:** {channel.category.name if channel.category else "None"}\n**¬ Type:** {channel.type}\n**¬ Position:** {channel.position}\n**¬ Created:** <t:{round(channel.created_at.timestamp())}:D>'
+        emb.set_footer(text=f'{ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.display_avatar)
+        emb.set_thumbnail(url=ctx.guild.icon or self.bot.user.display_avatar)
+        await ctx.send(embed=emb)
+    
+    @server.command(name='members')
+    async def members(self, ctx: commands.Context):
+        '''Get the member count of this server'''
+        await ctx.send(f'***```py\n>>> {ctx.guild.member_count} members```***')
+    
+    @server.command(name='icon')
     async def icon(self, ctx: commands.Context):
         '''Get the server icon'''
         if not ctx.guild.icon:

@@ -24,9 +24,15 @@ class Giveaways(commands.Cog):
         if winners > 10 or 1 > winners:
             return await util.throw_error(ctx, text='Invalid winners count provided, it must be between **1** and **10**', bold=False)
         prize = util.cut(text=prize, max=200)
-        emb = discord.Embed(title='Giveaway started!', color=3912003, description=f'🎁 **Prize:** {prize}\n⏰ **Ends:** <t:{round(datetime.datetime.now().timestamp() + (time / 1000))}:R>')
-        await ctx.channel.send(embed=emb)
-        await util.throw_fine(ctx, text='The giveaway was created successfully!', ephemeral=True)
+        emb = discord.Embed(title='Giveaway started!', color=3912003, description=f'🎁 **Prize:** {prize}\n\n⏰ **Ends:** <t:{round(datetime.datetime.now().timestamp() + (time / 1000))}:R>\n🎉 **Hosted by:** {ctx.author.mention}\n🏆 **Winners:** {winners}')
+        emb.set_footer(text='React with 🎁 to join!')
+        message = await ctx.channel.send(embed=emb)
+        if message:
+            await message.add_reaction('🎁')
+            await util.throw_fine(ctx, text='The giveaway was created successfully!', ephemeral=True)
+            await timeouts.add(time=time / 1000, id='giveaway', data={ 'guild': ctx.guild.id, 'channel': ctx.channel.id, 'message': message.id, 'winners': winners, 'price': prize, 'host': ctx.author.id })
+        else:
+            await util.throw_error(ctx, text='Ops! Something went wrong!', ephemeral=True)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Giveaways(bot))

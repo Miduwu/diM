@@ -5,6 +5,7 @@ from asyncio import sleep
 import discord
 import aiohttp
 from util.time import load
+import random
 
 class Util:
     def __init__(self, bot: commands.Bot) -> None:
@@ -51,6 +52,21 @@ class Util:
     def is_hex(self, text: str):
         return True if re.match('^([A-F0-9]{6}|[A-F0-9]{3})$', text, flags=re.IGNORECASE) else False
     
+    def choice(self, arr: list, amount = 1):
+        if amount >= len(arr):
+            return arr
+        w3 = []
+        i = 0
+        while i < amount:
+            r = random.choice(arr)
+            if r in w3:
+                continue
+            else:
+                w3.append(r)
+            i += 1
+        w3.sort()
+        return w3
+
     def cut(self, text: str, max: int):
         if len(text) >= max:
             return text[:max] + '...'

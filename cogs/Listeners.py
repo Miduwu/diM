@@ -21,6 +21,10 @@ class Listeners(commands.Cog):
             return await util.throw_error(ctx, text=f"**{ctx.author.name}**, you **don't** have permissions enough to use this command", bold=False)
         elif isinstance(error, commands.MissingRequiredArgument):
             return await util.throw_error(ctx, text=f"Missing **{error.param.name}** parameter", bold=False, defer=False)
+        elif isinstance(error, commands.RoleNotFound):
+            return await util.throw_error(ctx, text=f"**Missing or invalid role provided**", bold=False)
+        elif isinstance(error, commands.ChannelNotFound):
+            return await util.throw_error(ctx, text=f"**Missing or invalid channel provided**", bold=False)
         raise error
 
     @commands.Cog.listener()
