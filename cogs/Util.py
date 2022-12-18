@@ -6,6 +6,8 @@ from main import util, timeouts
 from datetime import datetime
 from deep_translator import GoogleTranslator
 from typing import Optional
+from util.views import Paginator
+import pydash as _
 
 class Util(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -219,6 +221,65 @@ class Util(commands.Cog):
         emb.add_field(name='RGB:', value=r['rgb'])
         emb.add_field(name='Int', value=str(r['int']))
         await ctx.send(embed=emb)
+    
+    @commands.hybrid_group(name='search')
+    async def search(self, ctx):
+        '''Search something from the internet, use the subcommands'''
+        ...
+    
+    @search.command(name='definition')
+    @discord.app_commands.describe(word='The term to define')
+    async def definition(self, ctx: commands.Context, word: str):
+        '''Define a term using the urban dictionary'''
+        res = await util.request(url='https://api.urbandictionary.com/v0/define', params={"term": word})
+        if not res or not _.has(res, 'list') or 0 >= len(res['list']):
+            return await util.throw_error(ctx, text='I was unable to find that term')
+        embed = discord.Embed(colour=3447003, title=res['list'][0]['word'])
+        embed.description = res['list'][0]['definition']
+        embed.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+        embed.add_field(name='Example:', value=util.cut(res['list'][0]['example'], 1020))
+        embed.set_footer(text=f'👍: {_.get(res, "list[0].thumbs_up") or 0} | 👎: {_.get(res, "list[0].thumbs_down") or 0} | Page: 1/{len(res["list"])}')
+    
+        v = Paginator(data=res['list'], ctx=ctx, embed=embed)
+        def update(item):
+            v.embed.clear_fields()
+            v.embed.title = item["word"]
+            v.embed.description = item["definition"]
+            v.embed.add_field(name='Example:', value=util.cut(item["example"], 1020))
+            v.embed.set_footer(text=f'👍: {_.get(item, "thumbs_up") or 0} | 👎: {_.get(item, "thumbs_down") or 0} | Page: {v.page + 1}/{len(_.get(res, "list"))}')
+        v.message = await ctx.send(embed=embed, view=v)
+        v.update_item = update
+    
+    @search.command(name='github')
+    @discord.app_commands.describe(repo='The github repository name')
+    async def repo(self, ctx: commands.Context, repo: str):
+        '''Search for a github repository'''
+        res = await util.request(url='https://api.github.com/search/repositories', params={"q": repo, "page": "1", "per_page": "10"})
+        if not res or not _.get(res, 'items') or 0 >= len(res['items']):
+            return await util.throw_error(ctx, text='I was unable to find some repository with that name')
+        _year, _month, _day = re.findall('(\d+)-(\d+)-(\d+)', res["items"][0]["created_at"])[0]
+        date = datetime(int(_year), int(_month), int(_day))
+        embed = discord.Embed(colour=3447003, url=res['items'][0]['owner']['html_url'], title=res['items'][0]['name'])
+        embed.description = util.cut(_.get(res['items'][0], 'description', default = 'None'), 2000)
+        embed.set_author(name=res['items'][0]['owner']['login'], icon_url=_.get(res['items'][0], 'owner.avatar_url'), url=res['items'][0]['owner']['html_url'])
+        embed.add_field(name='Information', value=f'**¬ Language:** {res["items"][0]["language"]}\n**¬ Visibility:** {res["items"][0]["visibility"].title()}\n**¬ Default branch:** `{res["items"][0]["default_branch"]}`\n**¬ Created:** <t:{round(date.timestamp())}:D>')
+        embed.add_field(name='Staticts', value=f'**¬ Forks:** {res["items"][0]["forks_count"]}\n**¬ Stars:** {res["items"][0]["stargazers_count"]}\n**¬ Issues:** {res["items"][0]["open_issues_count"]}\n**¬ Watchers:** {res["items"][0]["watchers"]}')
+        embed.set_footer(text=f'Page: 1/{len(_.get(res, "items"))}', icon_url=ctx.author.display_avatar)
+        def update(item):
+            _year, _month, _day = re.findall('(\d+)-(\d+)-(\d+)', item["created_at"])[0]
+            date = datetime(int(_year), int(_month), int(_day))
+            v.embed.clear_fields()
+            v.embed.title = item["name"]
+            v.embed.url = item["html_url"]
+            v.embed.description = util.cut(_.get(item, 'description', default='None'), 2000)
+            v.embed.set_author(name=item['owner']['login'], icon_url=_.get(item, 'owner.avatar_url'), url=item['owner']['html_url'])
+            v.embed.add_field(name='Information', value=f'**¬ Language:** {item["language"]}\n**¬ Visibility:** {item["visibility"].title()}\n**¬ Default branch:** `{item["default_branch"]}`\n**¬ Created:** <t:{round(date.timestamp())}:D>')
+            v.embed.add_field(name='Staticts', value=f'**¬ Forks:** {item["forks_count"]}\n**¬ Stars:** {item["stargazers_count"]}\n**¬ Issues:** {item["open_issues_count"]}\n**¬ Watchers:** {item["watchers"]}')
+            v.embed.set_footer(text=f'Page: {v.page + 1}/{len(_.get(res, "items"))}')
+
+        v = Paginator(data=res['items'], ctx=ctx, embed=embed)
+        v.message = await ctx.send(embed=embed, view=v)
+        v.update_item = update
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Util(bot))
