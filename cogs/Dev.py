@@ -12,6 +12,11 @@ class Dev(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
     
+    async def cog_check(self, ctx: commands.Context):
+        if ctx.guild is None:
+            await util.throw_error(ctx, text=f'This command is only for servers!')
+        return ctx.guild != None
+    
     @commands.hybrid_group(name='mid')
     async def mid(self, ctx):
         '''Developer commands (You can't use these)'''

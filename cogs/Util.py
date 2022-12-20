@@ -12,7 +12,13 @@ import pydash as _
 class Util(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+    
+    async def cog_check(self, ctx: commands.Context):
+        if ctx.guild is None:
+            await util.throw_error(ctx, text=f'This command is only for servers!')
+        return ctx.guild != None
 
+    @discord.app_commands.guild_only()
     @commands.hybrid_group(name='user')
     async def user(self, ctx: commands.Context):
         '''Fetch some user information'''
@@ -162,6 +168,7 @@ class Util(commands.Cog):
         emb.timestamp = datetime.now()
         await ctx.send(embed=emb)
     
+    @discord.app_commands.guild_only()
     @commands.hybrid_command(name='quote', aliases=['q'])
     @discord.app_commands.describe(url='The message URL that i will quote')
     async def quote(self, ctx: commands.Context, url: str):
@@ -260,7 +267,7 @@ class Util(commands.Cog):
         _year, _month, _day = re.findall('(\d+)-(\d+)-(\d+)', res["items"][0]["created_at"])[0]
         date = datetime(int(_year), int(_month), int(_day))
         embed = discord.Embed(colour=3447003, url=res['items'][0]['owner']['html_url'], title=res['items'][0]['name'])
-        embed.description = util.cut(_.get(res['items'][0], 'description', default = 'None'), 2000)
+        embed.description = util.cut(_.get(res['items'][0], 'description') or None, 2000)
         embed.set_author(name=res['items'][0]['owner']['login'], icon_url=_.get(res['items'][0], 'owner.avatar_url'), url=res['items'][0]['owner']['html_url'])
         embed.add_field(name='Information', value=f'**¬ Language:** {res["items"][0]["language"]}\n**¬ Visibility:** {res["items"][0]["visibility"].title()}\n**¬ Default branch:** `{res["items"][0]["default_branch"]}`\n**¬ Created:** <t:{round(date.timestamp())}:D>')
         embed.add_field(name='Staticts', value=f'**¬ Forks:** {res["items"][0]["forks_count"]}\n**¬ Stars:** {res["items"][0]["stargazers_count"]}\n**¬ Issues:** {res["items"][0]["open_issues_count"]}\n**¬ Watchers:** {res["items"][0]["watchers"]}')
@@ -271,7 +278,7 @@ class Util(commands.Cog):
             v.embed.clear_fields()
             v.embed.title = item["name"]
             v.embed.url = item["html_url"]
-            v.embed.description = util.cut(_.get(item, 'description', default='None'), 2000)
+            v.embed.description = util.cut(_.get(item, 'description') or 'None.', 2000)
             v.embed.set_author(name=item['owner']['login'], icon_url=_.get(item, 'owner.avatar_url'), url=item['owner']['html_url'])
             v.embed.add_field(name='Information', value=f'**¬ Language:** {item["language"]}\n**¬ Visibility:** {item["visibility"].title()}\n**¬ Default branch:** `{item["default_branch"]}`\n**¬ Created:** <t:{round(date.timestamp())}:D>')
             v.embed.add_field(name='Staticts', value=f'**¬ Forks:** {item["forks_count"]}\n**¬ Stars:** {item["stargazers_count"]}\n**¬ Issues:** {item["open_issues_count"]}\n**¬ Watchers:** {item["watchers"]}')

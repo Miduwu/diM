@@ -43,8 +43,7 @@ class Util:
                     elif extract.lower() == 'text':
                         return Response(await res.text(), res.status, res.content_type) if as_dict else await res.text()
         except Exception as err:
-            print(err)
-            return None
+            pass
     
     def ms(self, time, long = False):
         return load(time, long=long)

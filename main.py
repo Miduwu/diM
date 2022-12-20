@@ -2,7 +2,7 @@ import asyncio
 import discord
 import os
 import dotenv
-from util import execs, ext, midb, events
+from util import execs, ext, midb, events, mongo
 from discord.ext import commands
 
 dotenv.load_dotenv()
@@ -10,16 +10,22 @@ dotenv.load_dotenv()
 db = midb.Database(path='./database', tables=['Main', 'Users', 'Guilds', 'Timeouts'])
 timeouts = execs.Timeouts(db)
 
+mongodb = mongo.MongoDB()
+
 async def Task(bot: commands.Bot):
     await bot.wait_until_ready()
     await events.load(bot)
-    # await timeouts.check()
+
+async def GetPrefix(client, message: discord.Message):
+    if not message.guild:
+        return '$'
+    return await mongodb.get(table='guilds', id=message.guild.id, path='prefix') or '$'
 
 class diM(commands.Bot):
     async def setup_hook(self):
         self.loop.create_task(Task(self))
 
-bot = diM(command_prefix=(lambda client, message: db.get(f'{message.guild.id}.prefix', 'Guilds') or '$'), owner_ids=[664261902712438784, 930588488590581850], strip_after_prefix=True, intents=discord.Intents.all())
+bot = diM(command_prefix=GetPrefix, owner_ids=[664261902712438784, 930588488590581850], strip_after_prefix=True, intents=discord.Intents.all())
 
 util = ext.Util(bot)
 

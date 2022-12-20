@@ -4,9 +4,15 @@ import datetime
 from discord.ext import commands
 from main import util, timeouts
 
+@discord.app_commands.guild_only()
 class General(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+    
+    async def cog_check(self, ctx: commands.Context):
+        if ctx.guild is None:
+            await util.throw_error(ctx, text=f'This command is only for servers!')
+        return ctx.guild != None
     
     @commands.hybrid_group(name='bot')
     async def _bot(self, ctx):
@@ -30,12 +36,6 @@ class General(commands.Cog):
         embed.set_thumbnail(url=self.bot.user.display_avatar)
         embed.set_footer(text=f'Uptime: {uptime} hrs.')
         await ctx.send(embed=embed)
-    
-    @commands.command(name='cocacola')
-    @commands.is_owner()
-    async def test(self, ctx: commands.Context, time: str):
-        await ctx.send('antes')
-        await timeouts.add(time=int(time), id='test', data={"channel": ctx.channel.id, "author": ctx.author.id})
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(General(bot))
