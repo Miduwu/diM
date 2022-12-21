@@ -3,7 +3,6 @@ from main import util, mongodb
 from discord.ext import commands
 import pydash as _
 from util.views import Paginator, Confirmation
-from util.reader import parse
 
 class Tools(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -85,9 +84,9 @@ class Tools(commands.Cog):
         v.message = await ctx.send('Are you sure to delete **EVERY** tag in this server?', view=v)
         async def f(i: discord.Interaction):
             await i.response.defer()
-            await mongodb.set(table='guilds', id=ctx.guild.id, path='tags.list', value=[])
+            await mongodb.delete(table='guilds', id=ctx.guild.id, path='tags.list')
             await util.throw_fine(ctx, text='Every tag in this server was deleted!')
-        v.continue_forcing = f
+        v.call_me = f
     
     @tags.command(name='list')
     async def tag_list(self, ctx: commands.Context):
@@ -112,7 +111,14 @@ class Tools(commands.Cog):
         found = next((item for item in _tags_ if item['name'] == tag.lower()), None)
         if not found:
             return await util.throw_error(ctx, text="That tag doesn't exist")
-        await ctx.send(parse(found['content'], ctx))
+        await ctx.send(util.parse(found['content'], ctx))
+    
+    @tag_view.autocomplete(name='tag')
+    async def tag_autocomplete(self, interaction: discord.Interaction, current: str):
+        _tags_ = await mongodb.get(table='guilds', id=interaction.guild.id, path='tags.list') or []
+        return [
+            discord.app_commands.Choice(name=item['name'], value=item['name']) for item in _tags_ if current.lower() in item['name'].lower()
+        ]
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Tools(bot))

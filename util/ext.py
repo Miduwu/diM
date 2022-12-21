@@ -4,7 +4,8 @@ from typing import Literal
 from asyncio import sleep
 import discord
 import aiohttp
-from util.time import load
+from util.modules.time import load
+from traceback import format_exception
 import random
 
 class Util:
@@ -42,7 +43,7 @@ class Util:
                         return Response(await res.read(), res.status, res.content_type) if as_dict else await res.read()
                     elif extract.lower() == 'text':
                         return Response(await res.text(), res.status, res.content_type) if as_dict else await res.text()
-        except Exception as err:
+        except:
             pass
     
     def ms(self, time, long = False):
@@ -71,6 +72,32 @@ class Util:
             return text[:max] + '...'
         else:
             return text
+    
+    def load_exception(self, exception: Exception):
+        return format_exception(exception, exception, exception.__traceback__)
+    
+    def parse(self, text: str, ctx: commands.Context):
+        return text.replace(
+            '{user.name}', ctx.author.name
+            ).replace(
+                '{user.avatar}', str(ctx.author.display_avatar)
+            ).replace(
+                '{user.discriminator}', ctx.author.discriminator
+            ).replace(
+                '{user.mention}', ctx.author.mention
+            ).replace(
+                '{user.id}', str(ctx.author.id)
+            ).replace(
+                '{server.id}', str(ctx.guild.id)
+                ).replace(
+                    '{server.name}', ctx.guild.name
+            ).replace(
+                '{server.icon}', str(ctx.guild.icon)
+            ).replace(
+                '{server.members}', str(ctx.guild.member_count)
+            ).replace(
+                '{server.owner}', str(ctx.guild.owner_id)
+            )
 
 class Response:
     def __init__(self, data, status, contenttype) -> None:

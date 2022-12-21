@@ -1,12 +1,14 @@
 import discord
 import re
 from calendar import month
+from html import unescape
 from discord.ext import commands
 from main import util, timeouts
 from datetime import datetime
 from deep_translator import GoogleTranslator
 from typing import Optional
 from util.views import Paginator
+from urllib.parse import quote_plus
 import pydash as _
 
 class Util(commands.Cog):
@@ -241,6 +243,7 @@ class Util(commands.Cog):
         res = await util.request(url='https://api.urbandictionary.com/v0/define', params={"term": word})
         if not res or not _.has(res, 'list') or 0 >= len(res['list']):
             return await util.throw_error(ctx, text='I was unable to find that term')
+        await ctx.defer()
         embed = discord.Embed(colour=3447003, title=res['list'][0]['word'])
         embed.description = res['list'][0]['definition']
         embed.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
@@ -264,6 +267,7 @@ class Util(commands.Cog):
         res = await util.request(url='https://api.github.com/search/repositories', params={"q": repo, "page": "1", "per_page": "10"})
         if not res or not _.get(res, 'items') or 0 >= len(res['items']):
             return await util.throw_error(ctx, text='I was unable to find some repository with that name')
+        await ctx.defer()
         _year, _month, _day = re.findall('(\d+)-(\d+)-(\d+)', res["items"][0]["created_at"])[0]
         date = datetime(int(_year), int(_month), int(_day))
         embed = discord.Embed(colour=3447003, url=res['items'][0]['owner']['html_url'], title=res['items'][0]['name'])
@@ -287,6 +291,31 @@ class Util(commands.Cog):
         v = Paginator(data=res['items'], ctx=ctx, embed=embed)
         v.message = await ctx.send(embed=embed, view=v)
         v.update_item = update
+    
+    @search.command(name='python')
+    @discord.app_commands.describe(query='Something to search')
+    async def realpython(self, ctx: commands.Context, query: str):
+        '''Search something in real python website'''
+        res = await util.request(url='https://realpython.com/search/api/v1/', params={"q": query, "limit": 15})
+        if not res or not _.get(res, 'results') or not len(res['results']):
+            return await util.throw_error(ctx, text='I was unable to find some article related to that')
+        await ctx.defer()
+        articles = _.chunk(res["results"], 3)
+        emb = discord.Embed(colour=3447003, title='Search results - Real Python', url=f'https://realpython.com/search?q={quote_plus(query)}', description='Here you go')
+        emb.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar)
+        emb.set_thumbnail(url='https://cdn.discordapp.com/attachments/852617860404609044/1054972118611279892/pythontocompress_1.png')
+        emb.set_footer(text=f'Page: 1/{len(articles)}', icon_url=self.bot.user.display_avatar)
+        for article in articles[0]:
+            emb.add_field(name=util.cut(unescape(article["title"]), 225), value=f'https://realpython.com{article["url"]}', inline=False)
+        
+        v = Paginator(data=articles, ctx=ctx, embed=emb)
+        def update(item):
+            v.embed.clear_fields()
+            v.embed.set_footer(text=f'Page: {v.page + 1}/{len(articles)}')
+            for article in item:
+                v.embed.add_field(name=util.cut(unescape(article["title"]), 225), value=f'https://realpython.com{article["url"]}', inline=False)
+        v.update_item = update
+        v.message = await ctx.send(embed=emb, view=v)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Util(bot))

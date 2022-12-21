@@ -3,8 +3,8 @@ import os
 import pydash as _
 
 class MongoDB:
-    def __init__(self) -> None:
-        self.client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv('MONGO'))
+    def __init__(self, uri: str) -> None:
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(uri)
         self.db = self.client['dim']
     
     async def set(self, *, table: str, id: str, path: str, value: any):

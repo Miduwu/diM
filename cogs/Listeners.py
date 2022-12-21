@@ -1,6 +1,5 @@
 from datetime import datetime
-import discord
-from main import util, db
+from main import util
 from discord.ext import commands
 
 class Listeners(commands.Cog):
@@ -32,19 +31,6 @@ class Listeners(commands.Cog):
         print('diM is online')
         util.uptime = datetime.now()
         await self.bot.tree.sync()
-    
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
-        prefix = db.get(f'{message.guild.id}.prefix', 'Guilds') or '$'
-        if not message.content.startswith(prefix) or message.author.bot:
-            return
-        else:
-            name = message.content[len(prefix):].strip().split(' ')[0]
-            cmds = db.get(f'{message.guild.id}.commands', 'Guilds') or []
-            found = next((item for item in cmds if item['name'] == name.lower()), None)
-            if not found:
-                return
-            await message.channel.send(found['content'])
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Listeners(bot))

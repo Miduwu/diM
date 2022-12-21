@@ -35,7 +35,7 @@ class Paginator(discord.ui.View):
                 self.page = len(self.data) - 1
             else:
                 self.page -= 1
-                self.update_item(self.data[self.page])
+            self.update_item(self.data[self.page])
             if self.embed:
                 await interaction.response.edit_message(embed=self.embed)
             else:
@@ -69,7 +69,7 @@ class Confirmation(discord.ui.View):
             self.children[i].disabled = True
         await self.message.edit(view=self)
     
-    async def continue_forcing(self, interaction: discord.Interaction):
+    async def call_me(self, interaction: discord.Interaction):
         await interaction.response.defer()
     
     async def interaction_check(self, interaction: discord.Interaction):
@@ -94,4 +94,4 @@ class Confirmation(discord.ui.View):
         self.children[0].style = discord.ButtonStyle.gray
         self.children[1].label = 'Continuing'
         await self.message.edit(view=self)
-        await self.continue_forcing(interaction)
+        await self.call_me(interaction)
