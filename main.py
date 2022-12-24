@@ -2,7 +2,7 @@ import asyncio
 import discord
 import os
 import dotenv
-from util import ext, events
+from util import coreback, events, helpcmd
 from discord.ext import commands
 from util.modules import execs, midb, mongo
 
@@ -15,7 +15,7 @@ mongodb = mongo.MongoDB(os.getenv('MONGO'))
 
 async def Task(bot: commands.Bot):
     await bot.wait_until_ready()
-    await events.load(bot)
+    await events.load(bot, timeouts)
 
 async def get_prefix(client, message: discord.Message):
     if not message.guild:
@@ -26,9 +26,9 @@ class diM(commands.Bot):
     async def setup_hook(self):
         self.loop.create_task(Task(self))
 
-bot = diM(command_prefix=get_prefix, owner_ids=[664261902712438784, 930588488590581850], strip_after_prefix=True, intents=discord.Intents.all())
+bot = diM(command_prefix=get_prefix, owner_ids=[664261902712438784, 930588488590581850], strip_after_prefix=True, intents=discord.Intents.all(), help_command=None)
 
-util = ext.Util(bot)
+util = coreback.Util(bot)
 
 async def main():
     for file in os.listdir('./cogs'):

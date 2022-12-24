@@ -7,11 +7,13 @@ class Giveaways(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
     
+    @commands.is_owner()
     @commands.hybrid_group(name='giveaways')
     async def _gws(self, ctx):
         '''Manage the server giveaways'''
         ...
     
+    @commands.is_owner()
     @_gws.command(name='start')
     @discord.app_commands.describe()
     async def start(self, ctx: commands.Context, time: str, winners: int, prize: str):

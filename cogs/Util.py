@@ -6,7 +6,7 @@ from discord.ext import commands
 from main import util, timeouts
 from datetime import datetime
 from deep_translator import GoogleTranslator
-from typing import Optional
+from typing import Optional, Literal
 from util.views import Paginator
 from urllib.parse import quote_plus
 import pydash as _
@@ -26,7 +26,8 @@ class Util(commands.Cog):
         '''Fetch some user information'''
         ...
     
-    @user.command(name='avatar')
+    @commands.cooldown(1, 4, commands.BucketType.member)
+    @user.command(name='avatar', aliases=['av'])
     @discord.app_commands.describe(member='The member to stalk')
     async def avatar(self, ctx: commands.Context, member: Optional[discord.Member]):
         '''Get someone's avatar'''
@@ -39,7 +40,8 @@ class Util(commands.Cog):
         embed.set_image(url=str(user.display_avatar).replace('.webp', '.png'))
         await ctx.send(embed=embed)
     
-    @user.command(name='info')
+    @commands.cooldown(1, 5, commands.BucketType.member)
+    @user.command(name='info', aliases=['whois'])
     @discord.app_commands.describe(member='The member to stalk')
     async def userinfo(self, ctx: commands.Context, member: Optional[discord.Member]):
         '''Get someone's user info'''
@@ -58,6 +60,7 @@ class Util(commands.Cog):
         '''Fetch some server information'''
         ...
     
+    @commands.cooldown(1, 5, commands.BucketType.member)
     @server.command(name='info')
     async def serverinfo(self, ctx: commands.Context):
         '''Get the server info'''
@@ -68,6 +71,7 @@ class Util(commands.Cog):
         emb.add_field(name='<:blobhero:1011785174767382568> Staticts', value=f'**¬ Members:** {ctx.guild.member_count}\n**¬ Roles:** {len(ctx.guild.roles)}\n**¬ Channels:** {len(ctx.guild.channels)} (**Text:** {len(ctx.guild.text_channels)}, **Voice:** {len(ctx.guild.voice_channels)}, **Other:** {len(ctx.guild.channels) - len(ctx.guild.text_channels) - len(ctx.guild.voice_channels)})', inline=False)
         await ctx.send(embed=emb)
     
+    @commands.cooldown(1, 5, commands.BucketType.member)
     @server.command(name='role')
     @discord.app_commands.describe(role='The role to fetch')
     async def role(self, ctx: commands.Context, role: discord.Role):
@@ -80,6 +84,7 @@ class Util(commands.Cog):
         emb.set_footer(text=f'{ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.display_avatar)
         await ctx.send(embed=emb)
     
+    @commands.cooldown(1, 5, commands.BucketType.member)
     @server.command(name='channel')
     @discord.app_commands.describe(channel='The channel to fetch')
     async def channel(self, ctx: commands.Context, channel: Optional[discord.abc.GuildChannel]):
@@ -99,6 +104,7 @@ class Util(commands.Cog):
         '''Get the member count of this server'''
         await ctx.send(f'***```py\n>>> {ctx.guild.member_count} members```***')
     
+    @commands.cooldown(1, 4, commands.BucketType.member)
     @server.command(name='icon')
     async def icon(self, ctx: commands.Context):
         '''Get the server icon'''
@@ -110,6 +116,7 @@ class Util(commands.Cog):
         embed.set_image(url=ctx.guild.icon.url.replace('.webp', '.png'))
         await ctx.send(embed=embed)
     
+    @commands.cooldown(1, 5, commands.BucketType.member)
     @commands.hybrid_command(name='calendar', aliases=['date'])
     async def _calendar(self, ctx: commands.Context):
         '''Get the current month calendar'''
@@ -118,6 +125,7 @@ class Util(commands.Cog):
         t = f':calendar: **{datetime.now().year} {datetime.now().strftime("%B")}**\n```{text}```'
         await ctx.send(t)
     
+    @commands.cooldown(1, 8, commands.BucketType.member)
     @commands.hybrid_command(name='translate', aliases=['tr'])
     @discord.app_commands.describe(target='The target idiom', text='The text to translate')
     async def translate(self, ctx: commands.Context, target: str, *, text: str):
@@ -150,6 +158,7 @@ class Util(commands.Cog):
         except:
             await util.throw_error(ctx, text="Invalid translation, something went wrong")
 
+    @commands.cooldown(1, 8, commands.BucketType.member)
     @commands.hybrid_command(name='weather')
     @discord.app_commands.describe(city='The city to search')
     async def weather(self, ctx: commands.Context, *, city: str):
@@ -171,6 +180,7 @@ class Util(commands.Cog):
         await ctx.send(embed=emb)
     
     @discord.app_commands.guild_only()
+    @commands.cooldown(1, 7, commands.BucketType.member)
     @commands.hybrid_command(name='quote', aliases=['q'])
     @discord.app_commands.describe(url='The message URL that i will quote')
     async def quote(self, ctx: commands.Context, url: str):
@@ -198,6 +208,7 @@ class Util(commands.Cog):
         except:
             await util.throw_error(ctx, text='I was unable to quote that message')
     
+    @commands.cooldown(1, 45, commands.BucketType.member)
     @commands.hybrid_command(name='reminder', aliases=['remindme', 'remind'])
     @discord.app_commands.describe(time='The readable time to wait. Ex: 3m = 3 minutes', note='The text to remind you (send after provided time)')
     async def _add(self, ctx: commands.Context, time: str, *, note: str):
@@ -212,6 +223,7 @@ class Util(commands.Cog):
         await timeouts.add(time=as_ms / 1000, id='reminder', data={ 'author': ctx.author.id, 'note': note })
         await util.throw_fine(ctx, text=f"I've saved your reminder, i will notify you in **{as_long}** the next:\n\n{note[:1900]}", defer=False, bold=False, emoji=False)
     
+    @commands.cooldown(1, 7, commands.BucketType.member)
     @commands.hybrid_command(name='color', aliases=['hex'])
     @discord.app_commands.describe(hex='The color hex code')
     async def color(self, ctx: commands.Context, hex: str):
@@ -236,6 +248,7 @@ class Util(commands.Cog):
         '''Search something from the internet, use the subcommands'''
         ...
     
+    @commands.cooldown(1, 7, commands.BucketType.member)
     @search.command(name='definition')
     @discord.app_commands.describe(word='The term to define')
     async def definition(self, ctx: commands.Context, word: str):
@@ -260,6 +273,7 @@ class Util(commands.Cog):
         v.message = await ctx.send(embed=embed, view=v)
         v.update_item = update
     
+    @commands.cooldown(1, 7, commands.BucketType.member)
     @search.command(name='github')
     @discord.app_commands.describe(repo='The github repository name')
     async def repo(self, ctx: commands.Context, repo: str):
@@ -292,9 +306,10 @@ class Util(commands.Cog):
         v.message = await ctx.send(embed=embed, view=v)
         v.update_item = update
     
-    @search.command(name='python')
+    @commands.cooldown(1, 7, commands.BucketType.member)
+    @search.command(name='python', aliases=['py'])
     @discord.app_commands.describe(query='Something to search')
-    async def realpython(self, ctx: commands.Context, query: str):
+    async def realpython(self, ctx: commands.Context, *, query: str):
         '''Search something in real python website'''
         res = await util.request(url='https://realpython.com/search/api/v1/', params={"q": query, "limit": 15})
         if not res or not _.get(res, 'results') or not len(res['results']):
@@ -311,9 +326,35 @@ class Util(commands.Cog):
         v = Paginator(data=articles, ctx=ctx, embed=emb)
         def update(item):
             v.embed.clear_fields()
-            v.embed.set_footer(text=f'Page: {v.page + 1}/{len(articles)}')
+            v.embed.set_footer(text=f'Page: {v.page + 1}/{len(articles)}', icon_url=self.bot.user.display_avatar)
             for article in item:
                 v.embed.add_field(name=util.cut(unescape(article["title"]), 225), value=f'https://realpython.com{article["url"]}', inline=False)
+        v.update_item = update
+        v.message = await ctx.send(embed=emb, view=v)
+    
+    @commands.cooldown(1, 7, commands.BucketType.member)
+    @search.command(name='javascript', aliases=['js'])
+    @discord.app_commands.describe(query='Something to search')
+    async def mozilla(self, ctx: commands.Context, query: str, idiom: Literal['en-us', 'de', 'es', 'fr', 'ja', 'ko', 'pl', 'pt-br', 'ru', 'zh-cn', 'zh-tw'] = 'en-us'):
+        '''Search something in mozilla'''
+        res = await util.request(url='https://developer.mozilla.org/api/v1/search', params={"q": query, "locale": idiom})
+        if not res or not _.get(res, 'documents') or not len(res['documents']):
+            return await util.throw_error(ctx, text='I was unable to find something related to that')
+        await ctx.defer()
+        docs = _.get(res, 'documents')
+        emb = discord.Embed(colour=3447003, title=docs[0]['title'], url=f'https://developer.mozilla.org{docs[0]["mdn_url"]}')
+        emb.set_thumbnail(url='https://cdn.discordapp.com/attachments/778296113123688498/958975232952127488/mozilla.png')
+        emb.add_field(name='Locale:', value=docs[0]['locale'])
+        emb.add_field(name='Score:', value=str(_.get(docs[0], 'score') or 0))
+        emb.add_field(name='Summary:', value=docs[0]['summary'], inline=False)
+        emb.set_footer(text=f'Page: 1/{len(docs)}', icon_url=self.bot.user.display_avatar)
+        v = Paginator(data=docs, ctx=ctx, embed=emb)
+        def update(item):
+            v.embed.clear_fields()
+            v.embed.set_footer(text=f'Page: {v.page + 1}/{len(docs)}', icon_url=self.bot.user.display_avatar)
+            v.embed.add_field(name='Locale:', value=item['locale'])
+            v.embed.add_field(name='Score:', value=str(_.get(item, 'score') or 0))
+            v.embed.add_field(name='Summary:', value=item['summary'], inline=False)
         v.update_item = update
         v.message = await ctx.send(embed=emb, view=v)
 

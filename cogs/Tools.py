@@ -13,6 +13,7 @@ class Tools(commands.Cog):
             await util.throw_error(ctx, text=f'This command is only for servers!')
         return ctx.guild != None
     
+    @commands.cooldown(1, 120, commands.BucketType.member)
     @commands.hybrid_command(name='prefix')
     @commands.has_permissions(manage_guild=True)
     @discord.app_commands.guild_only()
@@ -25,12 +26,19 @@ class Tools(commands.Cog):
         await mongodb.set(table='guilds', id=ctx.guild.id, path='prefix', value=new_prefix)
         await util.throw_fine(ctx, text=f'**Prefix channged to: `{new_prefix}` successfully!**', bold=False)
     
-    @commands.hybrid_group(name='tag')
-    async def tags(self, ctx):
+    @commands.cooldown(1, 4, commands.BucketType.member)
+    @commands.hybrid_group(name='tag', aliases=['t'])
+    async def tags(self, ctx: commands.Context, tag: str):
         '''Manage the server tags'''
-        ...
+        await ctx.defer()
+        _tags_ = await mongodb.get(table='guilds', id=ctx.guild.id, path='tags.list') or []
+        found = next((item for item in _tags_ if item['name'] == tag.lower()), None)
+        if not found:
+            return await util.throw_error(ctx, text="That tag doesn't exist")
+        await ctx.send(util.parse(found['content'], ctx))
     
     @commands.has_permissions(manage_guild=True)
+    @commands.cooldown(1, 25, commands.BucketType.member)
     @tags.command(name='add')
     @discord.app_commands.describe(name='The tag name', content='The tag content')
     async def tag_add(self, ctx: commands.Context, name: str, content: str):
@@ -48,6 +56,7 @@ class Tools(commands.Cog):
         await util.throw_fine(ctx, text=f'**{name}** was added successfully!', bold=False)
     
     @commands.has_permissions(manage_guild=True)
+    @commands.cooldown(1, 15, commands.BucketType.member)
     @tags.command(name='modify')
     @discord.app_commands.describe(tag='The tag name to modify', content='The new tag contet')
     async def tag_modify(self, ctx: commands.Context, tag: str, content: str):
@@ -64,6 +73,7 @@ class Tools(commands.Cog):
         await util.throw_fine(ctx, text=f'**{tag}** was modified successfully!', bold=False)
     
     @commands.has_permissions(manage_guild=True)
+    @commands.cooldown(1, 9, commands.BucketType.member)
     @tags.command(name='delete')
     @discord.app_commands.describe(tag='The tag to delete')
     async def tag_delete(self, ctx: commands.Context, tag: str):
@@ -76,6 +86,7 @@ class Tools(commands.Cog):
         await util.throw_fine(ctx, text=f'**{tag}** was deleted successfully!', bold=False)
     
     @commands.has_permissions(administrator=True)
+    @commands.cooldown(1, 180, commands.BucketType.member)
     @tags.command(name='purge')
     async def tag_purge(self, ctx: commands.Context):
         '''Purge all the server tags, this is a dangerous command'''
@@ -88,6 +99,7 @@ class Tools(commands.Cog):
             await util.throw_fine(ctx, text='Every tag in this server was deleted!')
         v.call_me = f
     
+    @commands.cooldown(1, 7, commands.BucketType.member)
     @tags.command(name='list')
     async def tag_list(self, ctx: commands.Context):
         '''Views the server tags'''
@@ -102,6 +114,7 @@ class Tools(commands.Cog):
         v.update_item = update
         v.message = await ctx.send(f'**[Page: {v.page + 1}/{len(_tags_)}]**```py\n{func(_tags_[0])}```', view=v)
     
+    @commands.cooldown(1, 4, commands.BucketType.member)
     @tags.command(name='view')
     @discord.app_commands.describe(tag='The tag to view')
     async def tag_view(self, ctx: commands.Context, tag: str):

@@ -34,7 +34,7 @@ class Dev(commands.Cog):
         code = clean_code(text)
         if '--p' in code or '--print' in code:
             code = f'print({re.sub("--p(rint)?", "", code, flags=re.IGNORECASE)})'
-        local_variables = { "discord": discord, "commands": commands, "bot": commands.Bot, "ctx": ctx, "db": db, "timeouts": timeouts, "util": util }
+        local_variables = { "discord": discord, "commands": commands, "bot": ctx.bot, "ctx": ctx, "db": db, "timeouts": timeouts, "util": util }
         stdout = io.StringIO()
         try:
             with contextlib.redirect_stdout(stdout):
@@ -70,7 +70,7 @@ class Dev(commands.Cog):
     @commands.is_owner()
     async def _sync(self, ctx: commands.Context):
         '''Sync the slash commands'''
-        await ctx.interaction.response.defer()
+        await ctx.defer()
         await self.bot.tree.sync()
         await util.throw_fine(ctx, text='Slash commands synced successfully!', defer=False)
 

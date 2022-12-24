@@ -1,7 +1,6 @@
-from main import timeouts
 from discord.ext import commands
 
-async def load(bot: commands.Bot):
+async def load(bot: commands.Bot, timeouts):
     @timeouts.event
     async def on_check():
         pass

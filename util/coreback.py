@@ -1,17 +1,19 @@
 import re
 from discord.ext import commands
-from typing import Literal
+from typing import Literal, List
 from asyncio import sleep
 import discord
 import aiohttp
 from util.modules.time import load
 from traceback import format_exception
 import random
+import pydash as _
 
 class Util:
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.uptime = None
+        self.app_commands: List[discord.app_commands.AppCommand] = []
     
     async def throw_error(self, context: commands.Context, text: str, view: discord.ui.View = None, defer: bool = True, bold: bool = True, ephemeral: bool = True, emoji: bool = True):
         try:
