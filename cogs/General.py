@@ -42,7 +42,7 @@ class General(commands.Cog):
     @commands.cooldown(1, 7, commands.BucketType.member)
     @commands.hybrid_command(name='help')
     @discord.app_commands.describe(query='The module, command or subcommand to search')
-    async def help_command(self, ctx: commands.Context, *, query: str):
+    async def help_command(self, ctx: commands.Context, *, query: str = None):
         '''Get help about the bot'''
         await ctx.defer()
         if not query:
