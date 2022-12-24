@@ -41,7 +41,7 @@ class Tools(commands.Cog):
     @commands.cooldown(1, 25, commands.BucketType.member)
     @tags.command(name='add')
     @discord.app_commands.describe(name='The tag name', content='The tag content')
-    async def tag_add(self, ctx: commands.Context, name: str, content: str):
+    async def tag_add(self, ctx: commands.Context, name: str, *, content: str):
         '''Adds a server tag'''
         await ctx.defer()
         _tags_ = await mongodb.get(table='guilds', id=ctx.guild.id, path='tags.list') or []
@@ -59,7 +59,7 @@ class Tools(commands.Cog):
     @commands.cooldown(1, 15, commands.BucketType.member)
     @tags.command(name='modify')
     @discord.app_commands.describe(tag='The tag name to modify', content='The new tag contet')
-    async def tag_modify(self, ctx: commands.Context, tag: str, content: str):
+    async def tag_modify(self, ctx: commands.Context, tag: str, *, content: str):
         '''Edits a server tag'''
         await ctx.defer()
         _tags_ = await mongodb.get(table='guilds', id=ctx.guild.id, path='tags.list') or []

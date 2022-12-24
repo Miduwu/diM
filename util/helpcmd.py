@@ -137,7 +137,7 @@ async def send_help_command(ctx: commands.Context, command: commands.HybridComma
     if not command.app_command.parent:
         emb.add_field(name='Slash', value=f"</{as_slash.name}:{as_slash.id}>")
         emb.add_field(name='Module', value=command.cog.__cog_name__)
-        emb.add_field(name='Cooldown', value=str(command.cooldown or '0'))
+        emb.add_field(name='Cooldown', value=f'`{command.cooldown.rate}/{round(command.cooldown.per)}s`' if command.cooldown else '`None`')
         emb.add_field(name='Usage', value=f'```fix\n{ctx.clean_prefix}{parse_aliases(command)} {parse_params(command.params)}```')
         emb.description = as_slash.description or 'No description.'
     else:
@@ -145,7 +145,7 @@ async def send_help_command(ctx: commands.Context, command: commands.HybridComma
         subcmd = _.find(group.options, lambda c: c.name == command.name and c.type == discord.AppCommandOptionType.subcommand)
         emb.add_field(name='Slash', value=f"</{group.name} {subcmd.name}:{group.id}>")
         emb.add_field(name='Module', value=command.cog.__cog_name__)
-        emb.add_field(name='Cooldown', value=f'`{command.cooldown.rate}/{round(command.cooldown.per)}s`' if command.cooldown else '`Infinity`')
+        emb.add_field(name='Cooldown', value=f'`{command.cooldown.rate}/{round(command.cooldown.per)}s`' if command.cooldown else '`None`')
         emb.add_field(name='Usage', value=f'```fix\n{ctx.clean_prefix}{parse_aliases(command)} {parse_params(command.params)}```')
         emb.description = subcmd.description or 'No description.'
 
