@@ -40,8 +40,8 @@ class General(commands.Cog):
         await ctx.send(embed=embed)
     
     @commands.cooldown(1, 7, commands.BucketType.member)
-    @discord.app_commands.describe(query='The module, command or subcommand to search')
     @commands.hybrid_command(name='help')
+    @discord.app_commands.describe(query='The module, command or subcommand to search')
     async def help_command(self, ctx: commands.Context, *, query: str):
         '''Get help about the bot'''
         await ctx.defer()
