@@ -62,6 +62,7 @@ class MenuHelpSelect(discord.ui.Select):
         cmds = await get_app_commands_from_cog(self.values[0], self.commands, self.bot)
         mapped = map(lambda x: f'**{x["id"]}** :: {x["description"]}', cmds)
         try:
+            self.embed.clear_fields()
             _chunk = _.chunk(list(mapped), 10)
             self.embed.description = '\n'.join(_chunk[0])
             self.embed.set_footer(text=f'Page: 1/{len(_chunk)}', icon_url=self.bot.user.display_avatar)

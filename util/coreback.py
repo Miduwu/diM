@@ -8,6 +8,8 @@ from util.modules.time import load
 from traceback import format_exception
 import random
 import pydash as _
+import io
+from PIL import Image
 
 class Util:
     def __init__(self, bot: commands.Bot) -> None:
@@ -33,7 +35,7 @@ class Util:
         except:
             pass
     
-    async def request(self, *, url: str, params: dict = {}, extract: Literal['json', 'read', 'text'] = 'json', as_dict=False):
+    async def get(self, *, url: str, params: dict = {}, extract: Literal['json', 'read', 'text'] = 'json', as_dict=False):
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url=url, params=params) as res:
@@ -47,6 +49,14 @@ class Util:
                         return Response(await res.text(), res.status, res.content_type) if as_dict else await res.text()
         except:
             pass
+    
+    async def download_bytes(self, body):
+        body = await self.get(url=body, extract='read')
+        with Image.open(io.BytesIO(body)) as inp:
+            buff = io.BytesIO()
+            inp.save(buff, "png")
+            buff.seek(0)
+            return buff
     
     def ms(self, time, long = False):
         return load(time, long=long)

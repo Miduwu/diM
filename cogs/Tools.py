@@ -89,7 +89,7 @@ class Tools(commands.Cog):
     @commands.cooldown(1, 180, commands.BucketType.member)
     @tags.command(name='purge')
     async def tag_purge(self, ctx: commands.Context):
-        '''Purge all the server tags, this is a dangerous command'''
+        '''Purge all the server tags'''
         await ctx.defer()
         v = Confirmation(ctx=ctx)
         v.message = await ctx.send('Are you sure to delete **EVERY** tag in this server?', view=v)

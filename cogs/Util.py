@@ -163,7 +163,7 @@ class Util(commands.Cog):
     @discord.app_commands.describe(city='The city to search')
     async def weather(self, ctx: commands.Context, *, city: str):
         '''Get some city weather'''
-        v = await util.request(url="https://api.miduwu.ga/json/weather", params={"query": city}, as_dict=True)
+        v = await util.get(url="https://api.miduwu.ga/json/weather", params={"query": city}, as_dict=True)
         if not v or v.status != 200:
             return await util.throw_error(ctx, text=f"Invalid city provided")
         await ctx.defer()
@@ -231,16 +231,19 @@ class Util(commands.Cog):
         hex = re.sub('[^a-f\d]', '', hex, flags=re.IGNORECASE)
         if not util.is_hex(hex):
             return await util.throw_error(ctx, text='Invalid hex color code provided')
-        r = await util.request(url=f'https://api.alexflipnote.dev/colour/{hex}')
+        r = await util.get(url=f'https://api.alexflipnote.dev/colour/{hex}')
+        print(r)
         if not r:
             return await util.throw_error(ctx, text='I was unable to fetch that color')
         await ctx.defer()
         emb = discord.Embed(title=r['name'], color=r['int'])
         emb.set_author(name=f'{ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.display_avatar)
-        emb.set_image(url=r['image'])
-        emb.add_field(name='HEX:', value=r['hex'])
-        emb.add_field(name='RGB:', value=r['rgb'])
-        emb.add_field(name='Int', value=str(r['int']))
+        emb.set_image(url=r['images']['square'])
+        emb.add_field(name='HEX:', value=r['hex']['string'])
+        emb.add_field(name='RGB:', value=r['rgb']['string'])
+        emb.add_field(name='Int:', value=str(r['int']))
+        emb.add_field(name='HSL:', value=r['hsl']['string'])
+        emb.add_field(name='cmyk', value=r['cmyk']['string'])
         await ctx.send(embed=emb)
     
     @commands.hybrid_group(name='search')
@@ -253,7 +256,7 @@ class Util(commands.Cog):
     @discord.app_commands.describe(word='The term to define')
     async def definition(self, ctx: commands.Context, word: str):
         '''Define a term using the urban dictionary'''
-        res = await util.request(url='https://api.urbandictionary.com/v0/define', params={"term": word})
+        res = await util.get(url='https://api.urbandictionary.com/v0/define', params={"term": word})
         if not res or not _.has(res, 'list') or 0 >= len(res['list']):
             return await util.throw_error(ctx, text='I was unable to find that term')
         await ctx.defer()
@@ -278,7 +281,7 @@ class Util(commands.Cog):
     @discord.app_commands.describe(repo='The github repository name')
     async def repo(self, ctx: commands.Context, repo: str):
         '''Search for a github repository'''
-        res = await util.request(url='https://api.github.com/search/repositories', params={"q": repo, "page": "1", "per_page": "10"})
+        res = await util.gett(url='https://api.github.com/search/repositories', params={"q": repo, "page": "1", "per_page": "10"})
         if not res or not _.get(res, 'items') or 0 >= len(res['items']):
             return await util.throw_error(ctx, text='I was unable to find some repository with that name')
         await ctx.defer()
@@ -311,7 +314,7 @@ class Util(commands.Cog):
     @discord.app_commands.describe(query='Something to search')
     async def realpython(self, ctx: commands.Context, *, query: str):
         '''Search something in real python website'''
-        res = await util.request(url='https://realpython.com/search/api/v1/', params={"q": query, "limit": 15})
+        res = await util.get(url='https://realpython.com/search/api/v1/', params={"q": query, "limit": 15})
         if not res or not _.get(res, 'results') or not len(res['results']):
             return await util.throw_error(ctx, text='I was unable to find some article related to that')
         await ctx.defer()
@@ -337,7 +340,7 @@ class Util(commands.Cog):
     @discord.app_commands.describe(query='Something to search')
     async def mozilla(self, ctx: commands.Context, query: str, idiom: Literal['en-us', 'de', 'es', 'fr', 'ja', 'ko', 'pl', 'pt-br', 'ru', 'zh-cn', 'zh-tw'] = 'en-us'):
         '''Search something in mozilla'''
-        res = await util.request(url='https://developer.mozilla.org/api/v1/search', params={"q": query, "locale": idiom})
+        res = await util.gett(url='https://developer.mozilla.org/api/v1/search', params={"q": query, "locale": idiom})
         if not res or not _.get(res, 'documents') or not len(res['documents']):
             return await util.throw_error(ctx, text='I was unable to find something related to that')
         await ctx.defer()

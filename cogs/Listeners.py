@@ -28,7 +28,12 @@ class Listeners(commands.Cog):
             return await util.throw_error(ctx, text=f"**{ctx.author.name}**, you **don't** own this bot", bold=False, ephemeral=True)
         elif isinstance(error, commands.MissingPermissions):
             return await util.throw_error(ctx, text=f"**{ctx.author.name}**, you **don't** have permissions enough to use this command", bold=False)
-        raise error
+        elif isinstance(error, commands.BotMissingPermissions):
+            return await util.throw_error(ctx, text=f"Sadly i can't execute that command, i need the following permissions:\n{', '.join(list(map(lambda s: f'**`{s}`**', error.missing_permissions)))}")
+        elif isinstance(error, commands.BadArgument):
+            return await util.throw_error(ctx, text=f"Invalid argument type provided")
+        else:
+            print(util.load_exception(error))
 
     @commands.Cog.listener()
     async def on_ready(self):
