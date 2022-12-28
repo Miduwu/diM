@@ -8,15 +8,9 @@ class Tools(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
     
-    async def cog_check(self, ctx: commands.Context):
-        if ctx.guild is None:
-            await util.throw_error(ctx, text=f'This command is only for servers!')
-        return ctx.guild != None
-    
     @commands.cooldown(1, 120, commands.BucketType.member)
     @commands.hybrid_command(name='prefix')
     @commands.has_permissions(manage_guild=True)
-    @discord.app_commands.guild_only()
     @discord.app_commands.describe(new_prefix="The new prefix to set")
     async def prefix(self, ctx: commands.Context, new_prefix: str):
         '''Set the server prefix'''
@@ -27,9 +21,10 @@ class Tools(commands.Cog):
         await util.throw_fine(ctx, text=f'**Prefix channged to: `{new_prefix}` successfully!**', bold=False)
     
     @commands.cooldown(1, 4, commands.BucketType.member)
-    @commands.hybrid_group(name='tag', aliases=['t'])
+    @commands.hybrid_group(name='tag', fallback='view', aliases=['t'])
+    @discord.app_commands.describe(tag='The tag to view')
     async def tags(self, ctx: commands.Context, tag: str):
-        '''Manage the server tags'''
+        '''Manage the server tags, or view one'''
         await ctx.defer()
         _tags_ = await mongodb.get(table='guilds', id=ctx.guild.id, path='tags.list') or []
         found = next((item for item in _tags_ if item['name'] == tag.lower()), None)
@@ -104,29 +99,17 @@ class Tools(commands.Cog):
     async def tag_list(self, ctx: commands.Context):
         '''Views the server tags'''
         await ctx.defer()
-        _tags_ = _.chunk(await mongodb.get(table='guilds', id=ctx.guild.id, path='tags.list') or [], 5)
+        _tags_ = _.chunk(await mongodb.get(table='guilds', id=ctx.guild.id, path='tags.list') or [], 10)
         if not len(_tags_):
             return await util.throw_error(ctx, text="This server doesn't have tags yet")
-        func = lambda arr: '\n'.join(list(map(lambda obj: f'>>> {obj["name"]} [AUTHOR: {self.bot.get_user(obj["author"]).name if self.bot.get_user(obj["author"]) else "Unknown"}]', arr)))
+        func = lambda arr: '\n'.join(list(map(lambda obj: f'>>> \'{obj["name"]}\' [AUTHOR: {self.bot.get_user(obj["author"]).name if self.bot.get_user(obj["author"]) else "Unknown"}]', arr)))
         v = Paginator(data=_tags_, ctx=ctx)
         def update(item):
-            v.content = f'**[Page: {v.page + 1}/{len(_tags_)}]** ```py\n{func(item)}```'
+            v.content = f'**[Page: {v.page + 1}/{len(_tags_)}]** ```\n{func(item)}```'
         v.update_item = update
-        v.message = await ctx.send(f'**[Page: {v.page + 1}/{len(_tags_)}]**```py\n{func(_tags_[0])}```', view=v)
+        v.message = await ctx.send(f'**[Page: {v.page + 1}/{len(_tags_)}]**```\n{func(_tags_[0])}```', view=v)
     
-    @commands.cooldown(1, 4, commands.BucketType.member)
-    @tags.command(name='view')
-    @discord.app_commands.describe(tag='The tag to view')
-    async def tag_view(self, ctx: commands.Context, tag: str):
-        '''Views a server tag'''
-        await ctx.defer()
-        _tags_ = await mongodb.get(table='guilds', id=ctx.guild.id, path='tags.list') or []
-        found = next((item for item in _tags_ if item['name'] == tag.lower()), None)
-        if not found:
-            return await util.throw_error(ctx, text="That tag doesn't exist")
-        await ctx.send(util.parse(found['content'], ctx))
-    
-    @tag_view.autocomplete(name='tag')
+    @tags.autocomplete(name='tag')
     async def tag_autocomplete(self, interaction: discord.Interaction, current: str):
         _tags_ = await mongodb.get(table='guilds', id=interaction.guild.id, path='tags.list') or []
         return [

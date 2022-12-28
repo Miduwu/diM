@@ -1,6 +1,7 @@
 from datetime import datetime
 from main import util
 from discord.ext import commands
+from util.coreback import sync
 
 class Listeners(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -13,13 +14,15 @@ class Listeners(commands.Cog):
         elif isinstance(error, commands.MissingRequiredArgument):
             return await util.throw_error(ctx, text=f"Missing **{error.param.name}** parameter", bold=False, defer=False)
         elif isinstance(error, commands.UserNotFound):
-            return await util.throw_error(ctx, text=f"Invalid user provided in **{error.argument}** parameter", bold=False)
+            return await util.throw_error(ctx, text=f"Invalid user provided in **some** parameter", bold=False)
         elif isinstance(error, commands.MemberNotFound):
-            return await util.throw_error(ctx, text=f"Invalid member provided in **{error.argument}** parameter", bold=False)
+            return await util.throw_error(ctx, text=f"Invalid member provided in **some** parameter", bold=False)
         elif isinstance(error, commands.RoleNotFound):
-            return await util.throw_error(ctx, text=f"Invalid role provided in **{error.argument}** parameter", bold=False)
+            return await util.throw_error(ctx, text=f"Invalid role provided in **some** parameter", bold=False)
         elif isinstance(error, commands.ChannelNotFound):
-            return await util.throw_error(ctx, text=f"Invalid channel provided in **{error.argument}** parameter", bold=False)
+            return await util.throw_error(ctx, text=f"Invalid channel provided in **some** parameter", bold=False)
+        elif isinstance(error, commands.EmojiNotFound):
+            return await util.throw_error(ctx, f"Invalid emoji provided in **some** parameter, make sure it is in this server", bold=False)
         elif isinstance(error, commands.BadLiteralArgument):
             return await util.throw_error(ctx, text=f"Invalid argument provided in **{error.param.name}**, please choice:\n{', '.join(list(map(lambda lit: f'**`{lit}`**', error.literals)))}", bold=False, defer=False)
         elif isinstance(error, commands.CommandOnCooldown):
@@ -33,13 +36,13 @@ class Listeners(commands.Cog):
         elif isinstance(error, commands.BadArgument):
             return await util.throw_error(ctx, text=f"Invalid argument type provided")
         else:
-            print(util.load_exception(error))
+            pass
 
     @commands.Cog.listener()
     async def on_ready(self):
         print('diM is online')
         util.uptime = datetime.now()
-        util.app_commands = await self.bot.tree.sync()
+        util.app_commands = await sync(self.bot.tree)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Listeners(bot))

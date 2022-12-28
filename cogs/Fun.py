@@ -62,9 +62,11 @@ class Funny(commands.Cog):
     @discord.app_commands.describe(member='Optional member to use its avatar')
     @commands.hybrid_command(name='meme')
     async def meme(self, ctx: commands.Context, *, line: str = None):
-        '''Make a meme using the author avatar or a target member'''
+        '''Make a meme using a member avatar'''
+        if not ctx.interaction:
+            await ctx.channel.typing()
         expected = ctx.message.mentions[0].display_avatar if len(ctx.message.mentions) else ctx.author.display_avatar
-        line = line.replace(ctx.message.mentions[0].mention) if len(ctx.message.mentions) else line
+        line = line.replace(ctx.message.mentions[0].mention, '') if len(ctx.message.mentions) else line
         line1 = None
         line2 = None
         if '|' in line:
@@ -84,6 +86,7 @@ class Funny(commands.Cog):
                         line2 = ''
         if not line2:
             return await util.throw_error(ctx, text="You have to provide 2 lines for the meme")
+        await ctx.defer()
         rep = [["-","--"],["_","__"],["?","~q"],["%","~p"],[" ","%20"],["''","\""]]
         for s in rep:
             line1 = line1.replace(s[0],s[1])

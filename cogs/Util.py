@@ -14,13 +14,7 @@ import pydash as _
 class Util(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-    
-    async def cog_check(self, ctx: commands.Context):
-        if ctx.guild is None:
-            await util.throw_error(ctx, text=f'This command is only for servers!')
-        return ctx.guild != None
 
-    @discord.app_commands.guild_only()
     @commands.hybrid_group(name='user')
     async def user(self, ctx: commands.Context):
         '''Fetch some user information'''
@@ -179,7 +173,101 @@ class Util(commands.Cog):
         emb.timestamp = datetime.now()
         await ctx.send(embed=emb)
     
-    @discord.app_commands.guild_only()
+    @commands.hybrid_group(name='emoji')
+    async def emoji_group(self, ctx):
+        '''Manage the server emojis'''
+        ...
+    
+    @commands.cooldown(1, 5, commands.BucketType.member)
+    @discord.app_commands.describe(emoji='The emoji representation, id or name')
+    @emoji_group.command(name='image', aliases=['jumbo'])
+    async def jumbo(self, ctx: commands.Context, emoji: str):
+        '''Get a custom emoji image (big size)'''
+        found = re.findall(r"<(a)?:([a-zA-Z\d_]{2,32}):(\d{18,22})>", emoji)
+        found = found[0] if len(found) else None
+        url, name = None, None
+        if found:
+            name = found[1]
+            url = f'https://cdn.discordapp.com/emojis/{found[2]}.{"gif" if found[0] else "png"}'
+        else:
+            try_with_id = self.bot.get_emoji(int(emoji)) if emoji.isdigit() else None
+            if try_with_id:
+                name = try_with_id.name
+                url = f'https://cdn.discordapp.com/emojis/{try_with_id.id}.{"gif" if try_with_id.animated else "png"}'
+            else:
+                try_with_name = next((e for e in list(ctx.guild.emojis) if emoji in e.name), None)
+                if try_with_name:
+                    name = try_with_name.name
+                    url = f'https://cdn.discordapp.com/emojis/{try_with_name.id}.{"gif" if try_with_name.animated else "png"}'
+        if not url and not name:
+            return await util.throw_error(ctx, text="Invalid emoji provided, you can use the emoji representation, id or name")
+        t = f'> **Name:** {name}\n> **Link:** {url.replace("webp", "png")}'
+        await ctx.send(t)
+    
+    @commands.cooldown(1, 7, commands.BucketType.member)
+    @commands.has_guild_permissions(manage_emojis_and_stickers=True)
+    @commands.bot_has_guild_permissions(manage_emojis_and_stickers=True)
+    @emoji_group.command(name='add')
+    @discord.app_commands.describe(emoji='A custom emoji representation or a url', name='An optional name for the emoji')
+    async def addemoji(self, ctx: commands.Context, emoji: str, name: str = None):
+        '''Add a server emoji'''
+        emojis = await ctx.guild.fetch_emojis()
+        if(len(emojis) >= ctx.guild.emoji_limit):
+            return await util.throw_error(ctx, text="This server can't get more emojis because it reached the limit")
+        if name is None:
+            name = 'unknown'
+        if len(name) < 2:
+            name = f'{name}_'
+        try:
+            found = re.findall(r"<(a)?:([a-zA-Z\d_]{2,32}):(\d{18,22})>", emoji)
+            found = found[0] if len(found) else None
+            if not found and not emoji.startswith('http'):
+                return await util.throw_error(ctx, text="Invalid emoji provided")
+            url = f'https://cdn.discordapp.com/emojis/{found[2]}.{"gif" if found[0] else "png"}' if found else emoji
+            b = await util.get(url=url, extract='read')
+            e = await ctx.guild.create_custom_emoji(name=name[:35], image=b)
+            return await util.throw_fine(ctx, f"Successfully i've added {e} to the server")
+        except:
+            return await util.throw_error(ctx, text="I was unable to add that emoji")
+    
+    @commands.cooldown(1, 8, commands.BucketType.member)
+    @commands.has_guild_permissions(manage_emojis_and_stickers=True)
+    @commands.bot_has_guild_permissions(manage_emojis_and_stickers=True)
+    @emoji_group.command(name='delete')
+    @discord.app_commands.describe(emoji='The emoji representation or id')
+    async def delemoji(self, ctx: commands.Context, emoji: str):
+        '''Delete a emoji from the server'''
+        if emoji.isdigit():
+            if len(emoji) > 22 or len(emoji) < 18:
+                return await util.throw_error(ctx, text="Invalid emoji ID provided, wtf is that")
+            try:
+                got = await ctx.guild.fetch_emoji(int(emoji))
+            except:
+                got = None
+            if got is None:
+                return await util.throw_error(ctx, text="Invalid emoji ID provided, i didn't find anything")
+            try:
+                await got.delete()
+                await util.throw_fine(ctx, text="I deleted that emoji successfully!")
+            except:
+                return await util.throw_error(ctx, text="I was unable to delete that emoji")
+        else:
+            found = re.findall(r"<(a)?:([a-zA-Z\d_]{2,32}):(\d{18,22})>", emoji)
+            found = found[0] if len(found) else None
+            if not found:
+                return await util.throw_error(ctx, text="Invalid emoji representation provided, maybe try with the ID (number)")
+            try:
+                got = await ctx.guild.fetch_emoji(int(found[2]))
+            except:
+                got = None
+            if got is None:
+                return await util.throw_error(ctx, text="Invalid emoji provided")
+            try:
+                await got.delete()
+                await util.throw_fine(ctx, text="I deleted that emoji successfully!")
+            except Exception as err:
+                return await util.throw_error(ctx, text="I was unable to delete that emoji")
+    
     @commands.cooldown(1, 7, commands.BucketType.member)
     @commands.hybrid_command(name='quote', aliases=['q'])
     @discord.app_commands.describe(url='The message URL that i will quote')
@@ -232,7 +320,6 @@ class Util(commands.Cog):
         if not util.is_hex(hex):
             return await util.throw_error(ctx, text='Invalid hex color code provided')
         r = await util.get(url=f'https://api.alexflipnote.dev/colour/{hex}')
-        print(r)
         if not r:
             return await util.throw_error(ctx, text='I was unable to fetch that color')
         await ctx.defer()
@@ -281,7 +368,7 @@ class Util(commands.Cog):
     @discord.app_commands.describe(repo='The github repository name')
     async def repo(self, ctx: commands.Context, repo: str):
         '''Search for a github repository'''
-        res = await util.gett(url='https://api.github.com/search/repositories', params={"q": repo, "page": "1", "per_page": "10"})
+        res = await util.get(url='https://api.github.com/search/repositories', params={"q": repo, "page": "1", "per_page": "10"})
         if not res or not _.get(res, 'items') or 0 >= len(res['items']):
             return await util.throw_error(ctx, text='I was unable to find some repository with that name')
         await ctx.defer()
@@ -307,6 +394,29 @@ class Util(commands.Cog):
 
         v = Paginator(data=res['items'], ctx=ctx, embed=embed)
         v.message = await ctx.send(embed=embed, view=v)
+        v.update_item = update
+    
+    @commands.cooldown(1, 8, commands.BucketType.member)
+    @search.command(name='image')
+    @discord.app_commands.describe(query='Something to search')
+    async def bing(self, ctx: commands.Context, *, query: str):
+        '''Search something in bing images'''
+        res = await util.get(url=f"https://www.bing.com/images/async?q={query}&adlt=on", extract='read')
+        if not res:
+            return await util.throw_error(ctx, text='I was unable to find something related to that')
+        links = re.findall("murl&quot;:&quot;(.*?)&quot;", res.decode("utf8"))
+        if len(links) < 1:
+            return await util.throw_error(ctx, text='I was unable to find something related to that')
+        emb = discord.Embed(colour=3447003)
+        emb.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar)
+        emb.title = 'Search results'
+        emb.set_image(url=links[0])
+        emb.set_footer(text=f'Page: 1/{len(links)}', icon_url=self.bot.user.display_avatar)
+        v = Paginator(data=links, ctx=ctx, embed=emb)
+        def update(item):
+            emb.set_image(url=item)
+            emb.set_footer(text=f'Page: {v.page + 1}/{len(links)}', icon_url=self.bot.user.display_avatar)
+        v.message = await ctx.send(embed=emb, view=v)
         v.update_item = update
     
     @commands.cooldown(1, 7, commands.BucketType.member)

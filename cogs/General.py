@@ -5,15 +5,9 @@ from discord.ext import commands
 from main import util
 from util.helpcmd import send_help, send_help_cog, send_help_group, send_help_command
 
-@discord.app_commands.guild_only()
 class General(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-    
-    async def cog_check(self, ctx: commands.Context):
-        if ctx.guild is None:
-            await util.throw_error(ctx, text=f'This command is only for servers!')
-        return ctx.guild != None
     
     @commands.hybrid_group(name='bot')
     async def _bot(self, ctx):

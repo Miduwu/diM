@@ -30,6 +30,12 @@ bot = diM(command_prefix=get_prefix, owner_ids=[664261902712438784, 930588488590
 
 util = coreback.Util(bot)
 
+@bot.check
+async def guild_only(ctx: commands.Context):
+    if ctx.guild is None:
+        await util.throw_error(ctx, text=f'This command is only for servers!')
+    return ctx.guild != None
+
 async def main():
     for file in os.listdir('./cogs'):
         if file.endswith('.py'):
