@@ -24,7 +24,13 @@ async def get_app_commands_from_cog(cog: str, cache_commands: List[discord.app_c
                     children.append({ "id": f"</{cmd.name}:{cmd.id}>", "description": cmd.description })
         else:
             children.append({ "id": f"</{cmd.name}:{cmd.id}>", "description": cmd.description })
-    return children
+    not_repeated = []
+    for child in children:
+        if child['id'] in map(lambda x: x['id'], not_repeated):
+            continue
+        else:
+            not_repeated.append(child)
+    return not_repeated
 
 def parse_params(params: Dict[str, commands.Parameter], default=''):
     if not params:
