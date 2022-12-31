@@ -37,7 +37,7 @@ class Tools(commands.Cog):
     @tags.command(name='add')
     @discord.app_commands.describe(name='The tag name', content='The tag content')
     async def tag_add(self, ctx: commands.Context, name: str, *, content: str):
-        '''Adds a server tag'''
+        '''Add a server tag'''
         await ctx.defer()
         _tags_ = await mongodb.get(table='guilds', id=ctx.guild.id, path='tags.list') or []
         if len(_tags_) >= 50:
@@ -55,7 +55,7 @@ class Tools(commands.Cog):
     @tags.command(name='modify')
     @discord.app_commands.describe(tag='The tag name to modify', content='The new tag contet')
     async def tag_modify(self, ctx: commands.Context, tag: str, *, content: str):
-        '''Edits a server tag'''
+        '''Edit a server tag'''
         await ctx.defer()
         _tags_ = await mongodb.get(table='guilds', id=ctx.guild.id, path='tags.list') or []
         found = next((item for item in _tags_ if item['name'] == tag.lower()), None)
@@ -72,7 +72,7 @@ class Tools(commands.Cog):
     @tags.command(name='delete')
     @discord.app_commands.describe(tag='The tag to delete')
     async def tag_delete(self, ctx: commands.Context, tag: str):
-        '''Deletes a server tag'''
+        '''Delete a server tag'''
         await ctx.defer()
         _tags_ = await mongodb.get(table='guilds', id=ctx.guild.id, path='tags.list') or []
         if not next((item for item in _tags_ if item['name'] == tag.lower()), None):
@@ -97,17 +97,21 @@ class Tools(commands.Cog):
     @commands.cooldown(1, 7, commands.BucketType.member)
     @tags.command(name='list')
     async def tag_list(self, ctx: commands.Context):
-        '''Views the server tags'''
+        '''View the server tags'''
         await ctx.defer()
         _tags_ = _.chunk(await mongodb.get(table='guilds', id=ctx.guild.id, path='tags.list') or [], 10)
         if not len(_tags_):
             return await util.throw_error(ctx, text="This server doesn't have tags yet")
-        func = lambda arr: '\n'.join(list(map(lambda obj: f'>>> \'{obj["name"]}\' [AUTHOR: {self.bot.get_user(obj["author"]).name if self.bot.get_user(obj["author"]) else "Unknown"}]', arr)))
-        v = Paginator(data=_tags_, ctx=ctx)
+        func = lambda arr: '\n'.join(list(map(lambda obj: f'{_.flatten_deep(_tags_).index(obj) + 1} :: **`{obj["name"]}`** [Author: {self.bot.get_user(obj["author"]).name if self.bot.get_user(obj["author"]) else "Unknown"}]', arr)))
+        emb = discord.Embed(colour=3447003)
+        emb.description = func(_tags_[0])
+        emb.set_author(name=f'{ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.display_avatar)
+        v = Paginator(data=_tags_, ctx=ctx, embed=emb)
         def update(item):
-            v.content = f'**[Page: {v.page + 1}/{len(_tags_)}]** ```\n{func(item)}```'
+            v.content = f'**[Page: {v.page + 1}/{len(_tags_)}]**'
+            v.embed.description = func(item)
         v.update_item = update
-        v.message = await ctx.send(f'**[Page: {v.page + 1}/{len(_tags_)}]**```\n{func(_tags_[0])}```', view=v)
+        v.message = await ctx.send(content=f'**[Page: {v.page + 1}/{len(_tags_)}]**', view=v, embed=emb)
     
     @tags.autocomplete(name='tag')
     async def tag_autocomplete(self, interaction: discord.Interaction, current: str):

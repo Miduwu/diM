@@ -14,7 +14,6 @@ class General(commands.Cog):
         '''Get information related to the bot'''
         ...
 
-    @commands.is_owner()
     @_bot.command(name='ping')
     async def ping(self, ctx: commands.Context):
         '''Get the bot websocket latency'''
@@ -33,7 +32,7 @@ class General(commands.Cog):
         embed.set_footer(text=f'Uptime: {uptime} hrs.')
         await ctx.send(embed=embed)
     
-    @commands.cooldown(1, 7, commands.BucketType.member)
+    @commands.cooldown(1, 8, commands.BucketType.member)
     @commands.hybrid_command(name='help')
     @discord.app_commands.describe(query='The module, command or subcommand to search')
     async def help_command(self, ctx: commands.Context, *, query: str = None):

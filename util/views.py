@@ -37,7 +37,7 @@ class Paginator(discord.ui.View):
                 self.page -= 1
             self.update_item(self.data[self.page])
             if self.embed:
-                await interaction.response.edit_message(embed=self.embed)
+                await interaction.response.edit_message(embed=self.embed, content=self.content)
             else:
                 await interaction.response.edit_message(content=self.content or self.data[self.page])
         except:
@@ -52,7 +52,7 @@ class Paginator(discord.ui.View):
                 self.page += 1
             self.update_item(self.data[self.page])
             if self.embed:
-                await interaction.response.edit_message(embed=self.embed)
+                await interaction.response.edit_message(embed=self.embed, content=self.content)
             else:
                 await interaction.response.edit_message(content=self.content or self.data[self.page])
         except:

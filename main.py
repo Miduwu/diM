@@ -26,7 +26,14 @@ class diM(commands.Bot):
     async def setup_hook(self):
         self.loop.create_task(Task(self))
 
-bot = diM(command_prefix=get_prefix, owner_ids=[664261902712438784, 930588488590581850], strip_after_prefix=True, intents=discord.Intents.all(), help_command=None)
+bot = diM(
+    command_prefix=get_prefix,
+    owner_ids=[664261902712438784, 930588488590581850],
+    strip_after_prefix=True,
+    intents=discord.Intents.all(),
+    help_command=None,
+    activity=discord.Activity(type=discord.ActivityType.listening, name="to Mid ;3")
+    )
 
 util = coreback.Util(bot)
 
