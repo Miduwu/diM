@@ -2,7 +2,7 @@ import asyncio
 import discord
 import os
 import dotenv
-from util import coreback, events, helpcmd
+from util import coreback, events
 from discord.ext import commands
 from util.modules import execs, midb, mongo
 

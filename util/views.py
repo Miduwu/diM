@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from typing import List, Optional
 
 class Paginator(discord.ui.View):
     def __init__(self, *, timeout=30, data: list, ctx: commands.Context, embed = None):
@@ -95,3 +96,17 @@ class Confirmation(discord.ui.View):
         self.children[1].label = 'Continuing'
         await self.message.edit(view=self)
         await self.call_me(interaction)
+
+class DropdownRole(discord.ui.Select):
+    def __init__(self, ops: List[discord.SelectOption]):
+        super().__init__(placeholder="Select your roles", max_values=len(ops), options=ops, custom_id="dropdownRoles")
+    
+    async def callback(self, interaction: discord.Interaction):
+        a = '\n'.join(self.values)
+        await interaction.response.send_message(f"You selected: {a}", ephemeral=True)
+
+class DropdownRoleView(discord.ui.View):
+    def __init__(self, ops: List[discord.SelectOption], *, timeout: Optional[float] = 180):
+        super().__init__(timeout=timeout)
+        b = DropdownRole(ops)
+        self.add_item(b)

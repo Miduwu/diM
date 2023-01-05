@@ -35,12 +35,14 @@ class Listeners(commands.Cog):
             return await util.throw_error(ctx, text=f"Sadly i can't execute that command, i need the following permissions:\n{', '.join(list(map(lambda s: f'**`{s}`**', error.missing_permissions)))}")
         elif isinstance(error, commands.BadArgument):
             return await util.throw_error(ctx, text=f"Invalid argument type provided")
+        elif isinstance(error, commands.ChannelNotReadable):
+            return await util.throw_error(ctx, text=f"I can't read messages in that channel, i don't have access to it")
         else:
-            pass
+            print("\n".join(util.load_exception(error)))
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print('diM is online')
+        print("diM is online")
         util.uptime = datetime.now()
         util.app_commands = await sync(self.bot.tree)
 
