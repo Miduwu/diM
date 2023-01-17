@@ -43,28 +43,33 @@ class Mod(commands.Cog):
     @commands.cooldown(1, 8, commands.BucketType.member)
     @commands.bot_has_guild_permissions(manage_messages=True)
     @commands.has_guild_permissions(manage_messages=True)
-    @discord.app_commands.describe(amount="The amount of messages to delete", member="Optional filter, the member author to delete the messages")
     @commands.hybrid_command(name="clear", aliases=["purge", "clean"])
+    @discord.app_commands.describe(amount="The amount of messages to delete", member="Optional filter, the member author to delete the messages")
     async def clear(self, ctx: commands.Context, amount: int, member: discord.Member = None):
-        """Bulk delete X messages in this channel with optional filter"""
+        """Delete X messages in this channel with optional filter"""
         if amount > 100:
             return await util.throw_error(ctx, text="You can't exceed 100 messages")
         elif 1 > amount:
             return await util.throw_error(ctx, text="Invalid amount provide, try with +1")
-        if not member:
-            messages = await ctx.channel.purge(limit=amount)
-            await util.throw_fine(ctx, text=f"**{len(messages)}** message(s) has been deleted successfully!", bold=False)
-        else:
-            messages = await ctx.channel.purge(limit=amount, check=lambda m: m.author.id == member.id)
-            await util.throw_fine(ctx, text=f"**{len(messages)}** message(s) has beel deleted successfully!", bold=False)
+        if ctx.interaction:
+            await ctx.send(content="Deleting messages...", ephemeral=True, delete_after=5.0)
+        try:
+            if not member:
+                messages = await ctx.channel.purge(limit=amount)
+                await ctx.channel.send(f"**{len(messages)}** message(s) has been deleted successfully! <:blobheart:1011458084239056977>", delete_after=7.0)
+            else:
+                messages = await ctx.channel.purge(limit=amount, check=lambda m: m.author.id == member.id)
+                await ctx.channel.send(f"**{len(messages)}** message(s) has beel deleted successfully! <:blobheart:1011458084239056977>", delete_after=7.0)
+        except:
+            await util.throw_error(ctx, text="I was unable to do that, due discord API limitation i can't delete messages older than 14 days")
     
     @commands.cooldown(1, 10, commands.BucketType.member)
     @commands.bot_has_guild_permissions(kick_members=True)
     @commands.has_guild_permissions(kick_members=True)
-    @commands.command(name="kick")
+    @commands.hybrid_command(name="kick")
     @discord.app_commands.describe(member="The member to kick", reason="Optional reason")
     async def kick(self, ctx: commands.Context, member: discord.Member, * , reason = "Unknown reason"):
-        """Kick a user from this server"""
+        """Kick a member from this server"""
         if member.id == ctx.author.id:
             return await util.throw_error(ctx, text="You can't kick yourself")
         if member.id == self.bot.user.id:
@@ -77,8 +82,53 @@ class Mod(commands.Cog):
             return await util.throw_error(ctx, text="This user has the same or higher role than yours")
         if member.top_role.position >= ctx.guild.me.top_role.position:
             return await util.throw_error(ctx, text="This user has the same or higher role than mine")
-        await member.kick(reason=reason)
-        await util.throw_fine(ctx, text=f"**{member.name}#{member.discriminator}** was kicked successfully!")
+        try:
+            await member.kick(reason=reason)
+            await util.throw_fine(ctx, text=f"***{member.name}#{member.discriminator}*** was kicked successfully!", bold=False)
+        except:
+            await util.throw_error(ctx, text="I was unable to kick that member")
+    
+    @commands.cooldown(1, 10, commands.BucketType.member)
+    @commands.bot_has_guild_permissions(ban_members=True)
+    @commands.has_guild_permissions(ban_members=True)
+    @commands.hybrid_command(name="ban")
+    @discord.app_commands.describe(member="The member to ban", delete_messages="If i should delete the banned user messages", reason="Optional reason")
+    async def ban(self, ctx: commands.Context, member: discord.Member, delete_messages: bool = True, *, reason = "Unknown reason"):
+        """Ban a member from this server"""
+        if member.id == ctx.author.id:
+            return await util.throw_error(ctx, text="You can't ban yourself")
+        if member.id == self.bot.user.id:
+            return await util.throw_error(ctx, text="nooooo, please don't ban me")
+        if member.id == ctx.guild.owner_id:
+            return await util.throw_error(ctx, text="You can't ban to the server owner")
+        if member.guild_permissions.administrator:
+            return await util.throw_error(ctx, text="You can't ban administrators")
+        if member.top_role.position >= ctx.author.top_role.position:
+            return await util.throw_error(ctx, text="This user has the same or higher role than yours")
+        if member.top_role.position >= ctx.guild.me.top_role.position:
+            return await util.throw_error(ctx, text="This user has the same or higher role than mine")
+        try:
+            await member.ban(reason=reason, delete_message_days=0 if not delete_messages else 7)
+            await util.throw_fine(ctx, text=f"***{member._user.name}#{member.discriminator}*** was banned successfully!", bold=False)
+        except:
+            await util.throw_error(ctx, text="I was unable to ban that member")
+
+    @commands.cooldown(1, 10, commands.BucketType.member)
+    @commands.bot_has_guild_permissions(ban_members=True)
+    @commands.has_guild_permissions(ban_members=True)
+    @commands.hybrid_command(name="unban")
+    @discord.app_commands.describe(user="The user to unban", reason="Optional reason")
+    async def unban(self, ctx: commands.Context, user: discord.User, *, reason: str = "Unknown reason"):
+        """Unban a user from this server"""
+        try:
+            await ctx.guild.fetch_ban(user)
+        except:
+            return await util.throw_error(ctx, text="That user isn't banned")
+        try:
+            await ctx.guild.unban(user, reason=reason)
+            await util.throw_fine(ctx, text=f"***{user.name}#{user.discriminator}*** was unbanned successfully!", bold=False)
+        except:
+            await util.throw_error(ctx, text="I was unable to unban that user")
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Mod(bot))

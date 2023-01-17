@@ -10,6 +10,7 @@ import random
 import pydash as _
 import io
 from PIL import Image
+import regex
 
 class Util:
     def __init__(self, bot: commands.Bot) -> None:
@@ -110,6 +111,27 @@ class Util:
             ).replace(
                 '{server.owner}', str(ctx.guild.owner_id)
             )
+    
+    def parse_emoji(self, emoji: str, allow: Literal["unicode", "custom", "both"] = "both"):
+        if not emoji:
+            return None
+        is_unicode = regex.match(r"\p{Extended_Pictographic}|\p{Regional_Indicator}", emoji, flags=regex.UNICODE)
+        is_custom = regex.findall(r"<(a)?:([a-zA-Z\d_]{2,32}):(\d{18,22})>", emoji)
+        if allow == "unicode":
+            return emoji if is_unicode else None
+        elif allow == "custom":
+            return emoji if is_custom else None
+        else:
+            return emoji if is_custom or is_unicode else None
+    
+    def resolve_emoji(self, emoji):
+        if not emoji:
+            return { "animated": False, "id": None, "name": None }
+        splits = emoji.split(":")
+        if 3 > len(splits):
+            return { "animated": False, "id": None, "name": None }
+        return { "animated": splits[0] == "a", "id": splits[2], "name": splits[1] }
+        
 
 async def sync(cls, *, guild: Optional[discord.abc.Snowflake] = None) -> List[discord.app_commands.AppCommand]:
         """|coro|

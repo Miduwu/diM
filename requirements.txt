@@ -5,3 +5,4 @@ python-dotenv==0.21.0
 deep_translator
 motor
 wordcloud
+regex

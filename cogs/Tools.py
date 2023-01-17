@@ -4,6 +4,7 @@ from discord.ext import commands
 import pydash as _
 from util.views import Paginator, Confirmation
 from difflib import get_close_matches
+import re
 
 class Tools(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -167,6 +168,58 @@ class Tools(commands.Cog):
             return await util.throw_error(ctx, text="I can't send messages in that channel")
         message = await channel.send(embed=emb)
         await util.throw_fine(ctx, text=f"**The dropdown was sent! Now you can use the next to add the first role:**\n```/dropdown add {message.jump_url} @MyRole``` Good luck!", defer=False, bold=False, ephemeral=True)
-
+    
+    @commands.cooldown(1, 5, commands.BucketType.guild)
+    @commands.has_guild_permissions(manage_roles=True)
+    @dropdown.command(name="add")
+    @discord.app_commands.describe(url="The existing dropdown message URL", role="The role to add to that dropdown", emoji="A custom or default emoji for this role")
+    async def dropdown_add(self, ctx: commands.Context, url: str, role: discord.Role, emoji: str = None):
+        """Add a role to a dropdown"""
+        links = re.findall("channels\/[\d]+\/[\d]+\/[\d]+", url)
+        if not links:
+            return await util.throw_error(ctx, text="Invalid message URL provided in first parameter")
+        if role.position >= ctx.guild.me.top_role.position:
+            return await util.throw_error(ctx, text="That role is higher or equal than mine")
+        if role.position >= ctx.author.top_role.position:
+            return await util.throw_error(ctx, text="That role is higher or equal than yours")
+        emoji = util.parse_emoji(emoji) if emoji else "role:846171090484461579"
+        if not emoji:
+            return await util.throw_error(ctx, text="That is not a valid emoji")
+        g, c, m = links[0].split("/")[1:]
+        if g != ctx.guild.id:
+            return await util.throw_error(ctx, text="That message is not in this server")
+        try:
+            channel = self.bot.get_channel(c) or await self.bot.fetch_channel(c)
+        except:
+            return await util.throw_error(ctx, text="I was unable to find that channel")
+        try:
+            message = await channel.fetch_message(m)
+        except:
+            return await util.throw_error(ctx, text="I was unable to find that message")
+        view = discord.ui.View().from_message(message)
+        child: discord.ui.Select | None = view.children[0] if len(view.children) else None
+        if child and _.some(child.options, lambda o: o.value == role.id):
+            return await util.throw_error(ctx, text="That role is already in the dropdown")
+        if child:
+            if len(child.options) >= 20:
+                return await util.throw_error(ctx, text="This server has reached the role limit in a dropdown")
+            child.add_option(label=role.name, value=role.id, description="Get this role", emoji=emoji)
+            child.max_values = len(child.options) - 1
+            view[0] = child
+            await message.edit(view=view)
+            await util.throw_fine(ctx, text="Your changes has been saved successfully!")
+        else:
+            view.add_item(discord.ui.Select(custom_id="dropdown", placeholder="Select your roles", options=[discord.SelectOption(label=role.name, value=role.id, description="Get this role", emoji=emoji)]))
+            await message.edit(view=view)
+            await util.throw_fine(ctx, text="Your changes has been saved successfully!")
+    
+    @commands.cooldown(1, 5, commands.BucketType.guild)
+    @commands.has_guild_permissions(manage_roles=True)
+    @dropdown.command(name="remove")
+    @discord.app_commands.describe()
+    async def dropdown_remove(self, ctx: commands.Context, url: str, role: discord.Role):
+        """Remove a role from a dropdown"""
+        await ctx.send("Soon!")
+        
 async def setup(bot: commands.Bot):
     await bot.add_cog(Tools(bot))
