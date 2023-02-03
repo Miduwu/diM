@@ -4,12 +4,13 @@ import os
 import dotenv
 from util import coreback, events
 from discord.ext import commands
-from util.modules import execs, midb, mongo
+from util.modules import execs, midb, mongo, interpreter as inter
 
 dotenv.load_dotenv()
 
 db = midb.Database(path='./database', tables=['Main', 'Users', 'Guilds', 'Timeouts'])
 timeouts = execs.Timeouts(db)
+interpreter = inter.Interpreter()
 
 mongodb = mongo.MongoDB(os.getenv('MONGO'))
 

@@ -2,6 +2,7 @@ from datetime import datetime
 from main import util
 from discord.ext import commands
 from util.coreback import sync
+import discord
 
 class Listeners(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -45,6 +46,32 @@ class Listeners(commands.Cog):
         print("diM is online")
         util.uptime = datetime.now()
         util.app_commands = await sync(self.bot.tree)
+    
+    @commands.Cog.listener()
+    async def on_interaction(self, i: discord.Interaction):
+        if i.type == discord.InteractionType.component:
+            if i.data["custom_id"] == "dropdown":
+                m = []
+                for role in i.data["values"]:
+                    try:
+                        resolved = i.guild.get_role(int(role))
+                        if not resolved:
+                            all = await i.guild.fetch_roles()
+                            resolved = next((x for x in all if x.id == int(role)), None)
+                    except:
+                        continue
+                    if not resolved:
+                        continue
+                    try:
+                        if resolved in i.user.roles:
+                            m.append(f"I've removed the **{resolved.name}** role <:blobsip:1011458122239459440>")
+                            await i.user.remove_roles(resolved)
+                        else:
+                            m.append(f"I've added **{resolved.name}** role <:blobsip:1011458122239459440>")
+                            await i.user.add_roles(resolved)
+                    except:
+                        continue
+                await i.response.send_message("\n".join(m), ephemeral=True)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Listeners(bot))

@@ -2,7 +2,7 @@ import discord
 import sys
 import datetime
 from discord.ext import commands
-from main import util
+from main import util, interpreter
 from util.helpcmd import send_help, send_help_cog, send_help_group, send_help_command
 
 class General(commands.Cog):

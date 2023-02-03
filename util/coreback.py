@@ -131,6 +131,9 @@ class Util:
         if 3 > len(splits):
             return { "animated": False, "id": None, "name": None }
         return { "animated": splits[0] == "a", "id": splits[2], "name": splits[1] }
+    
+    def is_text(self, channel: discord.abc.GuildChannel):
+        return channel.type == discord.ChannelType.text or channel.type == discord.ChannelType.news or channel.type == discord.ChannelType.news_thread or channel.type == discord.ChannelType.private or channel.type == discord.ChannelType.private_thread or channel.type == discord.ChannelType.public_thread
         
 
 async def sync(cls, *, guild: Optional[discord.abc.Snowflake] = None) -> List[discord.app_commands.AppCommand]:

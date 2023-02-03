@@ -1,5 +1,5 @@
 import discord
-from main import util, mongodb
+from main import util, mongodb, interpreter
 from discord.ext import commands
 import pydash as _
 from util.views import Paginator, Confirmation
@@ -21,6 +21,16 @@ class Tools(commands.Cog):
         await ctx.defer()
         await mongodb.set(table="guilds", id=ctx.guild.id, path="prefix", value=new_prefix)
         await util.throw_fine(ctx, text=f"**Prefix channged to: `{new_prefix}` successfully!**", bold=False)
+    
+    @commands.cooldown(1, 5, commands.BucketType.member)
+    @commands.hybrid_command("test", aliases=["interprete"])
+    @discord.app_commands.describe(text="The content to test")
+    async def interprete(self, ctx: commands.Context, *, text: str):
+        """Interprete some text (used for some Tools)"""
+        d = await interpreter.read(text[:2000], ctx)
+        # print(d.interpreter.compiler.matched)
+        final = re.sub("FUNC#\d+", "", d.code).strip()
+        await ctx.send(content=final if final else None, embed=d.embed)
     
     @commands.cooldown(1, 4, commands.BucketType.member)
     @commands.hybrid_group(name="tag", fallback="view", aliases=["t"])
@@ -186,10 +196,12 @@ class Tools(commands.Cog):
         if not emoji:
             return await util.throw_error(ctx, text="That is not a valid emoji")
         g, c, m = links[0].split("/")[1:]
-        if g != ctx.guild.id:
+        if int(g) != ctx.guild.id:
             return await util.throw_error(ctx, text="That message is not in this server")
         try:
-            channel = self.bot.get_channel(c) or await self.bot.fetch_channel(c)
+            channel = self.bot.get_channel(int(c)) or await self.bot.fetch_channel(int(c))
+            if not util.is_text(channel):
+                return await util.throw_error(ctx, text="Invalid channel type")
         except:
             return await util.throw_error(ctx, text="I was unable to find that channel")
         try:
@@ -198,28 +210,115 @@ class Tools(commands.Cog):
             return await util.throw_error(ctx, text="I was unable to find that message")
         view = discord.ui.View().from_message(message)
         child: discord.ui.Select | None = view.children[0] if len(view.children) else None
-        if child and _.some(child.options, lambda o: o.value == role.id):
+        if child and _.some(child.options, lambda o: str(o.value) == str(role.id)):
             return await util.throw_error(ctx, text="That role is already in the dropdown")
         if child:
             if len(child.options) >= 20:
                 return await util.throw_error(ctx, text="This server has reached the role limit in a dropdown")
             child.add_option(label=role.name, value=role.id, description="Get this role", emoji=emoji)
-            child.max_values = len(child.options) - 1
-            view[0] = child
+            child.max_values = len(child.options)
+            view.children[0] = child
+            view.children[0].custom_id = "dropdown"
             await message.edit(view=view)
             await util.throw_fine(ctx, text="Your changes has been saved successfully!")
         else:
             view.add_item(discord.ui.Select(custom_id="dropdown", placeholder="Select your roles", options=[discord.SelectOption(label=role.name, value=role.id, description="Get this role", emoji=emoji)]))
+            view.children[0].custom_id = "dropdown"
             await message.edit(view=view)
             await util.throw_fine(ctx, text="Your changes has been saved successfully!")
     
     @commands.cooldown(1, 5, commands.BucketType.guild)
     @commands.has_guild_permissions(manage_roles=True)
     @dropdown.command(name="remove")
-    @discord.app_commands.describe()
+    @discord.app_commands.describe(url="The existing dropdown message URL", role="The role from the dropdown to remove")
     async def dropdown_remove(self, ctx: commands.Context, url: str, role: discord.Role):
         """Remove a role from a dropdown"""
-        await ctx.send("Soon!")
+        links = re.findall("channels\/[\d]+\/[\d]+\/[\d]+", url)
+        if not links:
+            return await util.throw_error(ctx, text="Invalid message URL provided in first parameter")
+        g, c, m = links[0].split("/")[1:]
+        if int(g) != ctx.guild.id:
+            return await util.throw_error(ctx, text="That message is not in this server")
+        try:
+            channel = self.bot.get_channel(int(c)) or await self.bot.fetch_channel(int(c))
+            if not util.is_text(channel):
+                return await util.throw_error(ctx, text="Invalid channel type")
+        except:
+            return await util.throw_error(ctx, text="I was unable to find that channel")
+        try:
+            message = await channel.fetch_message(m)
+        except:
+            return await util.throw_error(ctx, text="I was unable to find that message")
+        if message.author.id != self.bot.user.id and not len(message.embeds) and message.embeds[0].title != "Dropdown roles":
+            return await util.throw_error(ctx, text="The provided message is not a dropdown sent by me, create one using: **`/dropdown create`**")
+        view = discord.ui.View().from_message(message)
+        child: discord.ui.Select | None = view.children[0] if len(view.children) else None
+        if not child or not len(child.options):
+            return await util.throw_error(ctx, text="The dropdown doesn't have roles yet")
+        if not _.some(child.options, lambda o: str(o.value) == str(role.id)):
+            return await util.throw_error(ctx, text="That dropdown doesn't have that role")
+        child.options = list(filter(lambda o: str(o.value) != str(role.id), child.options))
+        child.max_values = len(child.options)
+        view.children[0] = child
+        view.children[0].custom_id = "dropdown"
+        await message.edit(view=view if len(child.options) else None)
+        await util.throw_fine(ctx, text="Your changes has been saved successfully!")
+    
+    @commands.cooldown(1, 5, commands.BucketType.guild)
+    @commands.has_guild_permissions(manage_roles=True)
+    @commands.bot_has_permissions(manage_messages=True)
+    @dropdown.command(name="delete")
+    @discord.app_commands.describe(url="The existing dropdown message URL")
+    async def dropdown_delete(self, ctx: commands.Context, url: str):
+        """Delete a dropdown"""
+        links = re.findall("channels\/[\d]+\/[\d]+\/[\d]+", url)
+        if not links:
+            return await util.throw_error(ctx, text="Invalid message URL provided in first parameter")
+        g, c, m = links[0].split("/")[1:]
+        if int(g) != ctx.guild.id:
+            return await util.throw_error(ctx, text="That message is not in this server")
+        try:
+            channel = self.bot.get_channel(int(c)) or await self.bot.fetch_channel(int(c))
+            if not util.is_text(channel):
+                return await util.throw_error(ctx, text="Invalid channel type")
+        except:
+            return await util.throw_error(ctx, text="I was unable to find that channel")
+        try:
+            message = await channel.fetch_message(m)
+        except:
+            return await util.throw_error(ctx, text="I was unable to find that message")
+        if message.author.id != self.bot.user.id and not len(message.embeds) and message.embeds[0].title != "Dropdown roles":
+            return await util.throw_error(ctx, text="The provided message is not a dropdown sent by me, create one using: **`/dropdown create`**")
+        await message.delete()
+        await util.throw_fine(ctx, text="Your changes has been saved successfully!")
+    
+    @commands.cooldown(1, 5, commands.BucketType.guild)
+    @commands.has_guild_permissions(manage_roles=True)
+    @dropdown.command(name="modify")
+    @discord.app_commands.describe(url="The existing dropdown message URL", description = "A new description for this dropdown")
+    async def dropdown_modify(self, ctx: commands.Context, url: str, *, description: str):
+        """Modify a dropdown description"""
+        links = re.findall("channels\/[\d]+\/[\d]+\/[\d]+", url)
+        if not links:
+            return await util.throw_error(ctx, text="Invalid message URL provided in first parameter")
+        g, c, m = links[0].split("/")[1:]
+        if int(g) != ctx.guild.id:
+            return await util.throw_error(ctx, text="That message is not in this server")
+        try:
+            channel = self.bot.get_channel(int(c)) or await self.bot.fetch_channel(int(c))
+            if not util.is_text(channel):
+                return await util.throw_error(ctx, text="Invalid channel type")
+        except:
+            return await util.throw_error(ctx, text="I was unable to find that channel")
+        try:
+            message = await channel.fetch_message(m)
+        except:
+            return await util.throw_error(ctx, text="I was unable to find that message")
+        if message.author.id != self.bot.user.id and not len(message.embeds) and message.embeds[0].title != "Dropdown roles":
+            return await util.throw_error(ctx, text="The provided message is not a dropdown sent by me, create one using: **`/dropdown create`**")
+        message.embeds[0].description = description[:2000]
+        await message.edit(embed=message.embeds[0])
+        await util.throw_fine(ctx, text="Your changes has been saved successfully!")
         
 async def setup(bot: commands.Bot):
     await bot.add_cog(Tools(bot))
