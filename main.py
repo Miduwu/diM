@@ -33,7 +33,7 @@ bot = diM(
     strip_after_prefix=True,
     intents=discord.Intents.all(),
     help_command=None,
-    activity=discord.Activity(type=discord.ActivityType.listening, name="to Mid ;3")
+    activity=discord.Activity(type=discord.ActivityType.listening, name="Mid ;3")
     )
 
 util = coreback.Util(bot)

@@ -29,6 +29,33 @@ async def description(d: Data):
     d.embed.description = d.func["inside"]
     return d.code.replace(d.func["id"], "")
 
+async def thumbnail(d: Data):
+    await d.interpreter.resolve_overloads(d)
+    if not d.func["inside"]:
+        return d.code
+    if not d.embed:
+        d.embed = discord.Embed()
+    d.embed.set_thumbnail(d.func["inside"])
+    return d.code.replace(d.func["id"], "")
+
+async def color(d: Data):
+    await d.interpreter.resolve_overloads(d)
+    if not d.func["inside"]:
+        return d.code
+    if not d.embed:
+        d.embed = discord.Embed()
+    d.embed.color = d.func["inside"]
+    return d.code.replace(d.func["id"], "")
+
+async def image(d: Data):
+    await d.interpreter.resolve_overloads(d)
+    if not d.func["inside"]:
+        return d.code
+    if not d.embed:
+        d.embed = discord.Embed()
+    d.embed.image = d.func["inside"]
+    return d.code.replace(d.func["id"], "")
+
 async def lower(d: Data):
     await d.interpreter.resolve_overloads(d)
     if not d.func["inside"]:
@@ -44,10 +71,41 @@ async def upper(d: Data):
 async def user_name(d: Data):
     return d.code.replace(d.func["id"], d.ctx.author.name)
 
+async def user_tag(d: Data):
+    return d.code.replace(d.func["id"], f'{d.ctx.author.name}#{d.ctx.author.discriminator}')
+
+async def user_id(d: Data):
+    return d.code.replace(d.func["id"], d.ctx.author.id)
+
+async def server_name(d: Data):
+    return d.code.replace(d.func["id"], d.ctx.guild.name)
+
+async def server_id(d: Data):
+    return d.code.replace(d.func["id"], d.ctx.guild.id)
+
+async def server_owner_id(d: Data): 
+    return d.code.replace(d.func["id"], d.ctx.guild.owner_id)
+
+async def member_count(d: Data):
+    return d.code.replace(d.func["id"], d.ctx.guild.member_count)
+
+async def role_count(d: Data):
+    return d.code.replace(d.func["id"], d.ctx.guild.roles.count)
+
 FUNCS = {
     "@title": title,
     "@description": description,
+    "@image": image,
+    "@thumbnail": thumbnail,
+    "@color": color,
     "@lower": lower,
     "@upper": upper,
-    "@user.name": user_name
+    "@user.name": user_name,
+    "@user.tag": user_tag,
+    "@user.id": user_id,
+    "@server.name": server_name,
+    "@server.id": server_id,
+    "@member.count": member_count,
+    "@owner.id": server_owner_id,
+    "@role.count": role_count
 }
