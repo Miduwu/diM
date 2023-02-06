@@ -89,29 +89,6 @@ class Util:
     def load_exception(self, exception: Exception):
         return format_exception(exception, exception, exception.__traceback__)
     
-    def parse(self, text: str, ctx: commands.Context):
-        return text.replace(
-            '{user.name}', ctx.author.name
-            ).replace(
-                '{user.avatar}', str(ctx.author.display_avatar)
-            ).replace(
-                '{user.discriminator}', ctx.author.discriminator
-            ).replace(
-                '{user.mention}', ctx.author.mention
-            ).replace(
-                '{user.id}', str(ctx.author.id)
-            ).replace(
-                '{server.id}', str(ctx.guild.id)
-                ).replace(
-                    '{server.name}', ctx.guild.name
-            ).replace(
-                '{server.icon}', str(ctx.guild.icon)
-            ).replace(
-                '{server.members}', str(ctx.guild.member_count)
-            ).replace(
-                '{server.owner}', str(ctx.guild.owner_id)
-            )
-    
     def parse_emoji(self, emoji: str, allow: Literal["unicode", "custom", "both"] = "both"):
         if not emoji:
             return None
@@ -134,6 +111,12 @@ class Util:
     
     def is_text(self, channel: discord.abc.GuildChannel):
         return channel.type == discord.ChannelType.text or channel.type == discord.ChannelType.news or channel.type == discord.ChannelType.news_thread or channel.type == discord.ChannelType.private or channel.type == discord.ChannelType.private_thread or channel.type == discord.ChannelType.public_thread
+    
+    def is_hex(self, text):
+        try:
+            return True if re.match('^([A-F0-9]{6}|[A-F0-9]{3})$', text.replace("#", ""), flags=re.IGNORECASE) else False
+        except:
+            return None
         
 
 async def sync(cls, *, guild: Optional[discord.abc.Snowflake] = None) -> List[discord.app_commands.AppCommand]:

@@ -28,8 +28,9 @@ class Tools(commands.Cog):
     async def interprete(self, ctx: commands.Context, *, text: str):
         """Interprete some text (used for some Tools)"""
         d = await interpreter.read(text[:2000], ctx)
-        # print(d.interpreter.compiler.matched)
         final = re.sub("FUNC#\d+", "", d.code).strip()
+        if not d.embed and not final:
+            return await util.throw_error(ctx, text="Invalid text provided, it doesn't return anything")
         await ctx.send(content=final if final else None, embed=d.embed)
     
     @commands.cooldown(1, 4, commands.BucketType.member)
@@ -39,10 +40,12 @@ class Tools(commands.Cog):
         """Manage the server tags, or view one"""
         await ctx.defer()
         _tags_ = await mongodb.get(table="guilds", id=ctx.guild.id, path="tags.list") or []
-        found = next((item for item in _tags_ if item["name"] == tag.lower()), None)
+        found = next((item for item in _tags_ if item["name"].lower() == tag.lower()), None)
         if not found:
             return await util.throw_error(ctx, text="That tag doesn't exist")
-        await ctx.send(util.parse(found["content"], ctx))
+        d = await interpreter.read(found["content"], ctx)
+        final = re.sub("FUNC#\d+", "", d.code).strip()
+        await ctx.send(content=final if final or d.embed else "No content, lmao i know this is crazy, please modify this tag", embed=d.embed)
     
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 25, commands.BucketType.member)
@@ -56,7 +59,7 @@ class Tools(commands.Cog):
             return await util.throw_error(ctx, text="This server has reached the tags limit")
         if len(name) >= 100:
             return await util.throw_error(ctx, text="The tag name can't exceed 100 letters")
-        if next((item for item in _tags_ if item["name"] == name.lower()), None):
+        if next((item for item in _tags_ if item["name"].lower() == name.lower()), None):
             return await util.throw_error(ctx, text=f"That tag already exists")
         _tags_.append({ "name": name, "content": content[:1950], "author": ctx.author.id })
         await mongodb.set(table="guilds", id=ctx.guild.id, path="tags.list", value=_tags_)
@@ -70,7 +73,7 @@ class Tools(commands.Cog):
         """Edit a server tag"""
         await ctx.defer()
         _tags_ = await mongodb.get(table="guilds", id=ctx.guild.id, path="tags.list") or []
-        found = next((item for item in _tags_ if item["name"] == tag.lower()), None)
+        found = next((item for item in _tags_ if item["name"].lower() == tag.lower()), None)
         if not found:
             return await util.throw_error(ctx, text="That tag doesn't exist")
         index = _tags_.index(found)
@@ -87,7 +90,7 @@ class Tools(commands.Cog):
         """Delete a server tag"""
         await ctx.defer()
         _tags_ = await mongodb.get(table="guilds", id=ctx.guild.id, path="tags.list") or []
-        if not next((item for item in _tags_ if item["name"] == tag.lower()), None):
+        if not next((item for item in _tags_ if item["name"].lower() == tag.lower()), None):
             return await util.throw_error(ctx, text="That tag doesn't exist")
         await mongodb.set(table="guilds", id=ctx.guild.id, path="tags.list", value=[cmd for cmd in _tags_ if not (cmd["name"] == tag.lower())])
         await util.throw_fine(ctx, text=f"**{tag}** was deleted successfully!", bold=False)

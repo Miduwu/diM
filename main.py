@@ -10,7 +10,6 @@ dotenv.load_dotenv()
 
 db = midb.Database(path='./database', tables=['Main', 'Users', 'Guilds', 'Timeouts'])
 timeouts = execs.Timeouts(db)
-interpreter = inter.Interpreter()
 
 mongodb = mongo.MongoDB(os.getenv('MONGO'))
 
@@ -37,6 +36,8 @@ bot = diM(
     )
 
 util = coreback.Util(bot)
+
+interpreter = inter.Interpreter(util)
 
 @bot.check
 async def guild_only(ctx: commands.Context):
