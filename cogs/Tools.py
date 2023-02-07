@@ -2,9 +2,10 @@ import discord
 from main import util, mongodb, interpreter
 from discord.ext import commands
 import pydash as _
-from util.views import Paginator, Confirmation
+from util.views import Paginator, Confirmation, Base
 from difflib import get_close_matches
 import re
+import io
 
 class Tools(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -95,6 +96,25 @@ class Tools(commands.Cog):
         await mongodb.set(table="guilds", id=ctx.guild.id, path="tags.list", value=[cmd for cmd in _tags_ if not (cmd["name"] == tag.lower())])
         await util.throw_fine(ctx, text=f"**{tag}** was deleted successfully!", bold=False)
     
+    @commands.cooldown(1, 5, commands.BucketType.member)
+    @tags.command(name="raw", aliases=["source"])
+    @discord.app_commands.describe(tag="The tag to get the source")
+    async def tag_raw(self, ctx: commands.Context, tag: str):
+        """Get a tag contet source"""
+        await ctx.defer()
+        _tags_ = await mongodb.get(table="guilds", id=ctx.guild.id, path="tags.list") or []
+        found = next((item for item in _tags_ if item["name"].lower() == tag.lower()), None)
+        if not found:
+            return await util.throw_error(ctx, text="That tag doesn't exist")
+        button = discord.ui.Button(style=discord.ButtonStyle.blurple, label="Show file", emoji="📝")
+        async def call(i: discord.Interaction):
+            await i.response.send_message(file=discord.File(io.StringIO(found["content"][:1950]), f"{found['name']}.txt"), ephemeral=True)
+        button.callback = call
+        v = Base(ctx=ctx).add_item(button)
+        emb = discord.Embed(title=f'"{found["name"]}" source', description=f'```txt\n{found["content"][:1950]}```', colour=3447003)
+        emb.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+        v.message = await ctx.send(embed=emb, view=v)
+    
     @commands.cooldown(1, 7, commands.BucketType.member)
     @tags.command(name="search")
     @discord.app_commands.describe(tag="Query to search in server tags")
@@ -160,7 +180,14 @@ class Tools(commands.Cog):
         _tags_ = await mongodb.get(table="guilds", id=interaction.guild.id, path="tags.list") or []
         return [
             discord.app_commands.Choice(name=item["name"], value=item["name"]) for item in _tags_ if current.lower() in item["name"].lower()
-        ]
+        ][:25]
+    
+    @tag_raw.autocomplete(name="tag")
+    async def tag_autocomplete_raw(self, interaction: discord.Interaction, current: str):
+        _tags_ = await mongodb.get(table="guilds", id=interaction.guild.id, path="tags.list") or []
+        return [
+            discord.app_commands.Choice(name=item["name"], value=item["name"]) for item in _tags_ if current.lower() in item["name"].lower()
+        ][:25]
     
     @commands.hybrid_group(name="dropdown", aliases=["menuroles"])
     async def dropdown(self, ctx):

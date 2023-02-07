@@ -2,6 +2,23 @@ import discord
 from discord.ext import commands
 from typing import List, Optional
 
+class Base(discord.ui.View):
+    def __init__(self, *, timeout=30, ctx: commands.Context):
+        self.ctx = ctx
+        self.message: discord.Message | None = None
+        super().__init__(timeout=timeout)
+    
+    async def on_timeout(self):
+        for i in range(0, len(self.children)):
+            self.children[i].disabled = True
+        await self.message.edit(view=self)
+    
+    async def interaction_check(self, interaction: discord.Interaction):
+        if self.ctx.author.id != interaction.user.id:
+            await interaction.response.send_message(content=f'{interaction.user.mention}, this interaction isn\'t for you <:bloboohcry:1011458104782758009>', ephemeral=True)
+        return self.ctx.author.id == interaction.user.id
+    
+
 class Paginator(discord.ui.View):
     def __init__(self, *, timeout=30, data: list, ctx: commands.Context, embed = None):
         super().__init__(timeout=timeout)
