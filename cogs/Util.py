@@ -450,7 +450,7 @@ class Util(commands.Cog):
     @discord.app_commands.describe(query='Something to search')
     async def mozilla(self, ctx: commands.Context, query: str, idiom: Literal['en-us', 'de', 'es', 'fr', 'ja', 'ko', 'pl', 'pt-br', 'ru', 'zh-cn', 'zh-tw'] = 'en-us'):
         '''Search something in mozilla'''
-        res = await util.gett(url='https://developer.mozilla.org/api/v1/search', params={"q": query, "locale": idiom})
+        res = await util.get(url='https://developer.mozilla.org/api/v1/search', params={"q": query, "locale": idiom})
         if not res or not _.get(res, 'documents') or not len(res['documents']):
             return await util.throw_error(ctx, text='I was unable to find something related to that')
         await ctx.defer()
@@ -470,6 +470,34 @@ class Util(commands.Cog):
             v.embed.add_field(name='Summary:', value=item['summary'], inline=False)
         v.update_item = update
         v.message = await ctx.send(embed=emb, view=v)
+    
+    @commands.cooldown(1, 5, commands.BucketType.member)
+    @commands.hybrid_command(name="api", aliases=["apy"])
+    @discord.app_commands.describe(query="The route to search in the official api (APY)")
+    async def apy(self, ctx: commands.Context, query: str):
+        """Search a route in the bot API (APY)"""
+        res: dict | None = await util.get(url="https://api.munlai.fun/json/route", params={"query": query})
+        if not res or not res.get("data", None):
+            return await util.throw_error(ctx, text='I was unable to find something related to that')
+        await ctx.defer()
+        emb = discord.Embed(colour=3447003, title=res["data"]["path"], url=f"https://api.munlai.fun{res['data']['path']}", description=res["data"]["explan"])
+        emb.set_author(name="APY (Stable)", icon_url="https://i.imgur.com/onn7Vbn.png")
+        emb.set_footer(text=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+        emb.set_thumbnail(url="https://i.imgur.com/onn7Vbn.png")
+        query = []
+        if res["data"].get("query", None):
+            if len(res["data"]["query"].get("required", [])):
+                for item in res["data"]["query"]["required"]:
+                    name, mytype, explan = item.split(";")
+                    query.append(f"**`<{name}>`: {mytype}** {explan}")
+            if len(res["data"]["query"].get("optional", [])):
+                for item in res["data"]["query"]["optional"]:
+                    name, mytype, explan = item.split(";")
+                    query.append(f"**`[{name}]`: Optional[{mytype}]** {explan}")
+        if len(query):
+            emb.add_field(name="Query parameters:", value="\n".join(query))
+        emb.add_field(name="Returns:", value=f"```{res['data'].get('returns', 'Uknown (Report it)')}```", inline=False)
+        await ctx.send(embed=emb)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Util(bot))

@@ -45,9 +45,9 @@ class Listeners(commands.Cog):
     async def on_ready(self):
         util.uptime = datetime.now()
         util.app_commands = await sync(self.bot.tree)
-        print("\u001b[34;1m>> {:<10}\u001b[0m \u001b[31;1m{:<5}\u001b[0m \u001b[35;1m{:<5}\u001b[0m".format("Name:", "|", self.bot.user.name))
-        print("\u001b[34;1m>> {:<10}\u001b[0m \u001b[31;1m{:<5}\u001b[0m \u001b[35;1m{:<5}\u001b[0m".format("Servers:", "|", len(self.bot.guilds)))
-        print("\u001b[34;1m>> {:<10}\u001b[0m \u001b[31;1m{:<5}\u001b[0m \u001b[35;1m{:<5}\u001b[0m".format("Commands:", "|", len(util.app_commands)))
+        print("\u001b[34;1m>> {:<10}\u001b[0m \u001b[31;1m{:<5}\u001b[0m \u001b[33;1m{:<5}\u001b[0m".format("Name:", "|", self.bot.user.name))
+        print("\u001b[34;1m>> {:<10}\u001b[0m \u001b[31;1m{:<5}\u001b[0m \u001b[33;1m{:<5}\u001b[0m".format("Servers:", "|", len(self.bot.guilds)))
+        print("\u001b[34;1m>> {:<10}\u001b[0m \u001b[31;1m{:<5}\u001b[0m \u001b[33;1m{:<5}\u001b[0m".format("Commands:", "|", len(util.app_commands)))
     
     @commands.Cog.listener()
     async def on_interaction(self, i: discord.Interaction):
