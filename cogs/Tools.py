@@ -62,7 +62,7 @@ class Tools(commands.Cog):
             return await util.throw_error(ctx, text="The tag name can't exceed 100 letters")
         if next((item for item in _tags_ if item["name"].lower() == name.lower()), None):
             return await util.throw_error(ctx, text=f"That tag already exists")
-        _tags_.append({ "name": name, "content": content[:1950], "author": ctx.author.id })
+        _tags_.append({ "name": name.lower(), "content": content[:1950], "author": ctx.author.id })
         await mongodb.set(table="guilds", id=ctx.guild.id, path="tags.list", value=_tags_)
         await util.throw_fine(ctx, text=f"**{name}** was added successfully!", bold=False)
     
@@ -93,7 +93,7 @@ class Tools(commands.Cog):
         _tags_ = await mongodb.get(table="guilds", id=ctx.guild.id, path="tags.list") or []
         if not next((item for item in _tags_ if item["name"].lower() == tag.lower()), None):
             return await util.throw_error(ctx, text="That tag doesn't exist")
-        await mongodb.set(table="guilds", id=ctx.guild.id, path="tags.list", value=[cmd for cmd in _tags_ if not (cmd["name"] == tag.lower())])
+        await mongodb.set(table="guilds", id=ctx.guild.id, path="tags.list", value=[cmd for cmd in _tags_ if not (cmd["name"].lower() == tag.lower())])
         await util.throw_fine(ctx, text=f"**{tag}** was deleted successfully!", bold=False)
     
     @commands.cooldown(1, 5, commands.BucketType.member)

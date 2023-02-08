@@ -1,6 +1,7 @@
 from discord.ext import commands
 from main import util
 import discord
+import datetime
 
 class Mod(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -39,6 +40,51 @@ class Mod(commands.Cog):
             return await util.throw_error(ctx, text="That channel isn't locked, so i can't unlock it")
         await channel.set_permissions(ctx.guild.default_role, send_messages=None)
         await util.throw_fine(ctx, text=f"{channel.mention} has been unlocked!", defer=False)
+    
+    @commands.has_guild_permissions(moderate_members=True)
+    @commands.hybrid_group(name="timeout")
+    async def timeoutgroup(self, ctx):
+        """Timeour or untimeout a member"""
+        ...
+    
+    @commands.cooldown(1, 6, commands.BucketType.member)
+    @commands.bot_has_guild_permissions(moderate_members=True)
+    @commands.has_guild_permissions(moderate_members=True)
+    @discord.app_commands.describe(member="The member to timeout", duration="The timeout duration. Ex: 1d", reason="Optional reason for this timeout")
+    @timeoutgroup.command(name="set", aliases=["add"])
+    async def timeoutset(self, ctx: commands.Context, member: discord.Member, duration: str = None, *, reason: str = None):
+        """Add a member a timeout"""
+        if member.id == ctx.author.id:
+            return await util.throw_error(ctx, text="You can't timeout yourself")
+        if member.id == self.bot.user.id:
+            return await util.throw_error(ctx, text="nooooo, please don't timeout me")
+        if member.id == ctx.guild.owner_id:
+            return await util.throw_error(ctx, text="You can't timeout to the server owner")
+        if member.guild_permissions.administrator:
+            return await util.throw_error(ctx, text="You can't timeout administrators")
+        if member.top_role.position >= ctx.author.top_role.position:
+            return await util.throw_error(ctx, text="This user has the same or higher role than yours")
+        if member.top_role.position >= ctx.guild.me.top_role.position:
+            return await util.throw_error(ctx, text="This user has the same or higher role than mine")
+        time = util.ms(duration or "1h")
+        if not time or time >= util.ms("1w") or time < util.ms("1m"):
+            return await util.throw_error(ctx, text="That is not a valid duration, make sure its readable time like: '1d', and i can't be higher than 1 week or lower than 1 minute")
+        if member.is_timed_out():
+            return await util.throw_error(ctx, text="That member is already in timeout lol")
+        await member.timeout(datetime.timedelta(milliseconds=time), reason=reason)
+        await util.throw_fine(ctx, text=f"***{member.name}#{member.discriminator}*** was timeouted successfully!", bold=False)
+    
+    @commands.cooldown(1, 4, commands.BucketType.member)
+    @commands.bot_has_guild_permissions(moderate_members=True)
+    @commands.has_guild_permissions(moderate_members=True)
+    @discord.app_commands.describe(member="The member to untimeout")
+    @timeoutgroup.command(name="unset", aliases=["remove"])
+    async def timeoutunset(self, ctx: commands.Context, member: discord.Member):
+        """Remove a member a timeout"""
+        if not member.is_timed_out():
+            return await util.throw_error(ctx, text="That member is not in timeout")
+        await member.timeout(None)
+        await util.throw_fine(ctx, text=f"***{member.name}#{member.discriminator}*** was untimeouted successfully!", bold=False)
     
     @commands.cooldown(1, 8, commands.BucketType.member)
     @commands.bot_has_guild_permissions(manage_messages=True)
