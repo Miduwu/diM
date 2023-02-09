@@ -2,7 +2,7 @@ import discord
 from main import util, mongodb, interpreter
 from discord.ext import commands
 import pydash as _
-from util.views import Paginator, Confirmation, Base
+from util.views import Paginator, Confirmation, Base, Settings
 from difflib import get_close_matches
 import re
 import io
@@ -28,7 +28,7 @@ class Tools(commands.Cog):
     @discord.app_commands.describe(text="The content to test")
     async def interprete(self, ctx: commands.Context, *, text: str):
         """Interprete some text (used for some Tools)"""
-        d = await interpreter.read(text[:2000], ctx)
+        d = await interpreter.read(text[:2000], author=ctx.author, guild=ctx.guild)
         final = re.sub("FUNC#\d+", "", d.code).strip()
         if not d.embed and not final:
             return await util.throw_error(ctx, text="Invalid text provided, it doesn't return anything")
@@ -349,6 +349,117 @@ class Tools(commands.Cog):
         message.embeds[0].description = description[:2000]
         await message.edit(embed=message.embeds[0])
         await util.throw_fine(ctx, text="Your changes has been saved successfully!")
-        
+    
+    @commands.hybrid_group(name="welcome")
+    async def welcome(self, ctx):
+        """Manage the welcome setting in this server"""
+        ...
+
+    @commands.cooldown(1, 15, commands.BucketType.guild)
+    @commands.has_guild_permissions(manage_guild=True)
+    @welcome.command(name="channel")
+    @discord.app_commands.describe(channel="The text channel for the welcome message")
+    async def welcome_channel(self, ctx: commands.Context, channel: discord.TextChannel):
+        """Set the welcome channel"""
+        if not channel.permissions_for(ctx.guild.me).send_messages:
+            return await util.throw_error(ctx, text="I can't send messages in that channel")
+        await mongodb.set(table="guilds", id=ctx.guild.id, path="welcome.channel", value=channel.id)
+        await mongodb.set(table="guilds", id=ctx.guild.id, path="welcome.enabled", value=True)
+        await util.throw_fine(ctx, text=f"I've set {channel.mention} as the welcome channel")
+    
+    @commands.cooldown(1, 15, commands.BucketType.guild)
+    @commands.has_guild_permissions(manage_guild=True)
+    @welcome.command(name="message")
+    @discord.app_commands.describe(message="The welcome message")
+    async def welcome_message(self, ctx: commands.Context, *, message: str):
+        """Set the welcome message"""
+        if 5 > len(message):
+            return await util.throw_error(ctx, text="Your message is too short (-5)")
+        if len(message) > 1900:
+            return await util.throw_error(ctx, text="Your message is too long (+1900)")
+        await mongodb.set(table="guilds", id=ctx.guild.id, path="welcome.message", value=message)
+        await mongodb.set(table="guilds", id=ctx.guild.id, path="welcome.enabled", value=True)
+        await util.throw_fine(ctx, text=f"I've set the welcome message sucessfully!")
+    
+    @commands.cooldown(1, 15, commands.BucketType.member)
+    @commands.has_guild_permissions(manage_guild=True)
+    @welcome.command(name="preview", aliases=["example"])
+    async def welcome_preview(self, ctx: commands.Context):
+        """See the welcome message preview"""
+        data: dict | None = await mongodb.get(table="guilds", id=ctx.guild.id)
+        if not data or not data.get("welcome", {}).get("enabled", None):
+            return await util.throw_error(ctx, text="This server doesn't have the welcome system enabled, enable it using: `/settings`")
+        if not data.get("welcome", {}).get("channel", None):
+            return await util.throw_error(ctx, text="This server doesn't have a welcome channel, set it using `/welcome channel`")
+        m = data.get("welcome", {}).get("message", None) or "Welcome @User.Mention to **@Server.Name**, now we are **@Server.Members** members!"
+        d = await interpreter.read(m, author=ctx.author, guild=ctx.guild)
+        final = re.sub("FUNC#\d+", "", d.code).strip()
+        if not final and not d.embed:
+            return await util.throw_error(ctx, text="This server doesn't have a valid message, re-set it using `/welcome message`")
+        await ctx.send(content=final if final else None, embed=d.embed) 
+    
+    @commands.hybrid_group(name="leave", aliases=["goodbye"])
+    async def leave(self, ctx):
+        """Manage the leave setting in this server"""
+        ...
+    
+    @commands.cooldown(1, 15, commands.BucketType.guild)
+    @commands.has_guild_permissions(manage_guild=True)
+    @leave.command(name="channel")
+    @discord.app_commands.describe(channel="The text channel for the leave message")
+    async def leave_channel(self, ctx: commands.Context, channel: discord.TextChannel):
+        """Set the leave channel"""
+        if not channel.permissions_for(ctx.guild.me).send_messages:
+            return await util.throw_error(ctx, text="I can't send messages in that channel")
+        await mongodb.set(table="guilds", id=ctx.guild.id, path="leave.channel", value=channel.id)
+        await mongodb.set(table="guilds", id=ctx.guild.id, path="leave.enabled", value=True)
+        await util.throw_fine(ctx, text=f"I've set {channel.mention} as the leave channel")
+    
+    @commands.cooldown(1, 15, commands.BucketType.guild)
+    @commands.has_guild_permissions(manage_guild=True)
+    @leave.command(name="message")
+    @discord.app_commands.describe(message="The welcome message")
+    async def leave_message(self, ctx: commands.Context, *, message: str):
+        """Set the leave message"""
+        if 5 > len(message):
+            return await util.throw_error(ctx, text="Your message is too short (-5)")
+        if len(message) > 1900:
+            return await util.throw_error(ctx, text="Your message is too long (+1900)")
+        await mongodb.set(table="guilds", id=ctx.guild.id, path="leave.message", value=message)
+        await mongodb.set(table="guilds", id=ctx.guild.id, path="leave.enabled", value=True)
+        await util.throw_fine(ctx, text=f"I've set the leave message sucessfully!")
+    
+    @commands.cooldown(1, 15, commands.BucketType.member)
+    @commands.has_guild_permissions(manage_guild=True)
+    @leave.command(name="preview", aliases=["example"])
+    async def leave_preview(self, ctx: commands.Context):
+        """See the leave message preview"""
+        data: dict | None = await mongodb.get(table="guilds", id=ctx.guild.id)
+        if not data or not data.get("leave", {}).get("enabled", None):
+            return await util.throw_error(ctx, text="This server doesn't have the leave system enabled, enable it using: `/settings`")
+        if not data.get("leave", {}).get("channel", None):
+            return await util.throw_error(ctx, text="This server doesn't have a leave channel, set it using `/leave channel`")
+        m = data.get("leave", {}).get("message", None) or "Uh, oh! **@User.Name** has left us! \:("
+        d = await interpreter.read(m, author=ctx.author, guild=ctx.guild)
+        final = re.sub("FUNC#\d+", "", d.code).strip()
+        if not final and not d.embed:
+            return await util.throw_error(ctx, text="This server doesn't have a valid message, re-set it using `/leave message`")
+        await ctx.send(content=final if final else None, embed=d.embed)
+    
+    @commands.cooldown(1, 30, commands.BucketType.guild)
+    @commands.has_guild_permissions(manage_guild=True)
+    @commands.hybrid_command(name="settings")
+    async def settings(self, ctx: commands.Context):
+        """Manage the settings in this server"""
+        emb = discord.Embed(colour=3447003, title="Settings", description=f"Thanks for using **{ctx.bot.user.name}** tools! You can see a system by using the select menu below this.")
+        emb.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+        emb.set_footer(text=f"{self.bot.user.name} settings", icon_url=self.bot.user.display_avatar)
+        emb.set_thumbnail(url=self.bot.user.display_avatar)
+        try:
+            v = Settings(ctx=ctx, embed=emb, timeout=30)
+            v.message = await ctx.send(embed=emb, view=v)
+        except Exception as err:
+            print(err)
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(Tools(bot))

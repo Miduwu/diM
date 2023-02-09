@@ -1,6 +1,7 @@
 from .compiler import Compiler
 from .interpreter_funcs import Data, FUNCS
-from discord.ext import commands
+from typing import Union
+import discord
 
 class Interpreter:
     def __init__(self, util):
@@ -21,12 +22,10 @@ class Interpreter:
             for over in d.func["fields"][index]["overs"]:
                 found = next((x for x in d.interpreter.funcs if x[0] == over["name"].lower()), None)
                 if found:
-                    NEWDATA = Data()
+                    NEWDATA = Data(author=d.author, guild=d.guild)
                     NEWDATA.embed = d.embed
                     NEWDATA.buttons = d.buttons
                     NEWDATA.interpreter = d.interpreter
-                    NEWDATA.metadata = d.metadata
-                    NEWDATA.ctx = d.ctx
                     NEWDATA.func = over
                     NEWDATA.code = d.func["fields"][index]["value"]
                     reject = await found[1](NEWDATA, self.util)
@@ -44,15 +43,14 @@ class Interpreter:
             if reject and isinstance(reject, str):
                 d.code = reject.strip() or ""
     
-    async def read(self, text: str, ctx: commands.Context):
+    async def read(self, text: str, *, author: discord.User | discord.Member | Union[discord.User, discord.Member], guild: discord.Guild):
         if not text:
             return {}
         await self.compiler.set_code(text)
         await self.compiler.magic()
-        data = Data()
+        data = Data(author=author, guild=guild)
         data.code = self.compiler.result or text
         data.interpreter = self
-        data.ctx = ctx
         entries = list(self.compiler.matched.copy().items()) if self.compiler.matched else None
         if entries:
             for fn in entries[::-1]:

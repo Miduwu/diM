@@ -1,8 +1,9 @@
 from datetime import datetime
-from main import util
+from main import util, interpreter, mongodb as db
 from discord.ext import commands
 from util.coreback import sync
 import discord
+import re
 
 class Listeners(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -74,6 +75,58 @@ class Listeners(commands.Cog):
                     except:
                         continue
                 await i.response.send_message("\n".join(m), ephemeral=True)
+    
+    @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+        async def welcome(m: discord.Member):
+            data: dict | None = await db.get(table="guilds", id=m.guild.id, path="welcome")
+            if not data or not data.get("enabled", None):
+                return
+            try:
+                channel = data.get("channel", None)
+                if not channel:
+                    return
+                channel = m.guild.get_channel(int(channel)) or await m.guild.fetch_channel(int(channel))
+                if not channel:
+                    return
+                message = data.get("message", None) or "Welcome @User.Mention to **@Server.Name**, now we are **@Server.Members** members!"
+                d = await interpreter.read(message, author=m, guild=m.guild)
+                final = re.sub("FUNC#\d+", "", d.code).strip()
+                if not final and not d.embed:
+                    return
+                await channel.send(content=final if final else None, embed=d.embed)
+            except:
+                pass
+        await welcome(member)
+    
+    @commands.Cog.listener()
+    async def on_raw_member_remove(self, payload: discord.RawMemberRemoveEvent):
+        try:
+            guild = self.bot.get_guild(payload.guild_id) or await self.bot.fetch_guild(payload.guild_id)
+        except:
+            return
+        if not payload.user:
+            return
+        async def leave(m: discord.Member | discord.User):
+            data: dict | None = await db.get(table="guilds", id=guild.id, path="leave")
+            if not data or not data.get("enabled", None):
+                return
+            try:
+                channel = data.get("channel", None)
+                if not channel:
+                    return
+                channel = m.guild.get_channel(int(channel)) or await m.guild.fetch_channel(int(channel))
+                if not channel:
+                    return
+                message = data.get("message", None) or "Uh, oh! **@User.Name** has left us! \:("
+                d = await interpreter.read(message, author=m, guild=guild)
+                final = re.sub("FUNC#\d+", "", d.code).strip()
+                if not final and not d.embed:
+                    return
+                await channel.send(content=final if final else None, embed=d.embed)
+            except:
+                pass
+        await leave(payload.user)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Listeners(bot))

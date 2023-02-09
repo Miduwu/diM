@@ -1,17 +1,18 @@
 import discord
 from discord.ext import commands
 import re
+from typing import Union
 
 URL_REGEXP = "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{2,6}"
 
 class Data:
-    def __init__(self) -> None:
+    def __init__(self, *, author: discord.User | discord.Member | Union[discord.Member, discord.User], guild: discord.Guild) -> None:
         self.embed: discord.Embed | None = None
         self.buttons = None
-        self.metadata = {}
         self.code: str = ""
         self.func = None
-        self.ctx: commands.Context = None
+        self.author = author
+        self.guild = guild
         self.interpreter = None
 
 async def title(d: Data, u):
@@ -94,34 +95,34 @@ async def upper(d: Data, u):
     return d.code.replace(d.func["id"], d.func["inside"].upper())
 
 async def user_name(d: Data, u):
-    return d.code.replace(d.func["id"], d.ctx.author.name)
+    return d.code.replace(d.func["id"], d.author.name)
 
 async def user_tag(d: Data, u):
-    return d.code.replace(d.func["id"], f'{d.ctx.author.name}#{d.ctx.author.discriminator}')
+    return d.code.replace(d.func["id"], f'{d.author.name}#{d.author.discriminator}')
 
 async def user_id(d: Data, u):
-    return d.code.replace(d.func["id"], str(d.ctx.author.id))
+    return d.code.replace(d.func["id"], str(d.author.id))
 
 async def user_avatar(d: Data, u):
-    return d.code.replace(d.func["id"], str(d.ctx.author.display_avatar).replace(".webp", ".png"))
+    return d.code.replace(d.func["id"], str(d.author.display_avatar).replace(".webp", ".png"))
 
 async def server_name(d: Data, u):
-    return d.code.replace(d.func["id"], d.ctx.guild.name)
+    return d.code.replace(d.func["id"], d.guild.name)
 
 async def server_id(d: Data, u):
-    return d.code.replace(d.func["id"], str(d.ctx.guild.id))
+    return d.code.replace(d.func["id"], str(d.guild.id))
 
 async def server_owner_id(d: Data, u): 
-    return d.code.replace(d.func["id"], str(d.ctx.guild.owner_id))
+    return d.code.replace(d.func["id"], str(d.guild.owner_id))
 
 async def server_icon(d: Data, u):
-    return d.code.replace(d.func["id"], str(d.ctx.guild.icon).replace(".webp", ".png"))
+    return d.code.replace(d.func["id"], str(d.guild.icon).replace(".webp", ".png"))
 
 async def member_count(d: Data, u):
-    return d.code.replace(d.func["id"], str(d.ctx.guild.member_count))
+    return d.code.replace(d.func["id"], str(d.guild.member_count))
 
 async def role_count(d: Data, u):
-    return d.code.replace(d.func["id"], str(len(d.ctx.guild.roles)))
+    return d.code.replace(d.func["id"], str(len(d.guild.roles)))
 
 FUNCS = {
     "@title": title,
