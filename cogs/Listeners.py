@@ -1,5 +1,5 @@
 from datetime import datetime
-from main import util, interpreter, mongodb as db
+from main import util, interpreter, mongodb as db, timeouts
 from discord.ext import commands
 from util.coreback import sync
 import discord
@@ -44,6 +44,7 @@ class Listeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        timeouts.bot = self.bot
         util.uptime = datetime.now()
         util.app_commands = await sync(self.bot.tree)
         print("\u001b[34;1m>> {:<10}\u001b[0m \u001b[31;1m{:<5}\u001b[0m \u001b[33;1m{:<5}\u001b[0m".format("Name:", "|", self.bot.user.name))

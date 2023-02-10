@@ -77,7 +77,7 @@ class Util:
             else:
                 w3.append(r)
             i += 1
-        w3.sort()
+        # w3.sort()
         return w3
 
     def cut(self, text: str, max: int):

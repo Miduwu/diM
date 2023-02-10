@@ -152,7 +152,7 @@ class Settings(discord.ui.View):
         await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.select(placeholder="Select a system in this server", options=[
-        discord.SelectOption(label="Main", description="Home page", default=True),
+        discord.SelectOption(label="Main", description="Home page"),
         discord.SelectOption(label="Welcome", description="Manage the welcome system"),
         discord.SelectOption(label="Leave", description="Manage the leave/goodbye system"),
     ])

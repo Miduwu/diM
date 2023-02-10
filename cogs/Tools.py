@@ -44,7 +44,7 @@ class Tools(commands.Cog):
         found = next((item for item in _tags_ if item["name"].lower() == tag.lower()), None)
         if not found:
             return await util.throw_error(ctx, text="That tag doesn't exist")
-        d = await interpreter.read(found["content"], ctx)
+        d = await interpreter.read(found["content"], author=ctx.author, guild=ctx.guild)
         final = re.sub("FUNC#\d+", "", d.code).strip()
         await ctx.send(content=final if final or d.embed else "No content, lmao i know this is crazy, please modify this tag", embed=d.embed)
     
@@ -350,6 +350,21 @@ class Tools(commands.Cog):
         await message.edit(embed=message.embeds[0])
         await util.throw_fine(ctx, text="Your changes has been saved successfully!")
     
+    @commands.cooldown(1, 30, commands.BucketType.guild)
+    @commands.has_guild_permissions(manage_guild=True)
+    @commands.hybrid_command(name="settings")
+    async def settings(self, ctx: commands.Context):
+        """Manage the settings in this server"""
+        emb = discord.Embed(colour=3447003, title="Settings", description=f"Thanks for using **{ctx.bot.user.name}** tools! You can see a system by using the select menu below this.")
+        emb.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+        emb.set_footer(text=f"{self.bot.user.name} settings", icon_url=self.bot.user.display_avatar)
+        emb.set_thumbnail(url=self.bot.user.display_avatar)
+        try:
+            v = Settings(ctx=ctx, embed=emb, timeout=30)
+            v.message = await ctx.send(embed=emb, view=v)
+        except:
+            pass
+    
     @commands.hybrid_group(name="welcome")
     async def welcome(self, ctx):
         """Manage the welcome setting in this server"""
@@ -445,21 +460,6 @@ class Tools(commands.Cog):
         if not final and not d.embed:
             return await util.throw_error(ctx, text="This server doesn't have a valid message, re-set it using `/leave message`")
         await ctx.send(content=final if final else None, embed=d.embed)
-    
-    @commands.cooldown(1, 30, commands.BucketType.guild)
-    @commands.has_guild_permissions(manage_guild=True)
-    @commands.hybrid_command(name="settings")
-    async def settings(self, ctx: commands.Context):
-        """Manage the settings in this server"""
-        emb = discord.Embed(colour=3447003, title="Settings", description=f"Thanks for using **{ctx.bot.user.name}** tools! You can see a system by using the select menu below this.")
-        emb.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
-        emb.set_footer(text=f"{self.bot.user.name} settings", icon_url=self.bot.user.display_avatar)
-        emb.set_thumbnail(url=self.bot.user.display_avatar)
-        try:
-            v = Settings(ctx=ctx, embed=emb, timeout=30)
-            v.message = await ctx.send(embed=emb, view=v)
-        except Exception as err:
-            print(err)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Tools(bot))

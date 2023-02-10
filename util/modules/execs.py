@@ -4,12 +4,14 @@ from util.modules.midb import Database
 import datetime
 import pydash as _
 import asyncio
+from discord.ext import commands
 
 allowed_events = ['on_expires', 'on_create', 'on_remove', 'on_check']
 
 class Timeouts:
     def __init__(self, db: Database) -> None:
         self.db = db
+        self.bot: commands.Bot = None
         self._callbacks: Dict[str, callable] = {}
     
     async def add(self, *, time: float, id: str, data: any):
