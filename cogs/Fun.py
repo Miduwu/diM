@@ -51,7 +51,7 @@ class Funny(commands.Cog):
         await ctx.send(file=discord.File(fp=b, filename="rainbow.png"))
 
     @commands.cooldown(1, 7, commands.BucketType.member)
-    @images.commands(name="deepfry")
+    @images.command(name="deepfry")
     @discord.app_commands.describe(user="Select a user")
     async def deepfry(self, ctx: commands.Context, user: discord.User = None):
         """"Make a image deepfry""" # Despues vambiale si queres, soy una mierda para las descripciones
