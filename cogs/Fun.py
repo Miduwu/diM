@@ -63,7 +63,7 @@ class Funny(commands.Cog):
     @commands.cooldown(1, 7, commands.BucketType.member)
     @images.command(name="target")
     @discord.app_commands.describe(user="Select a user")
-    async def deepfry(self, ctx: commands.Context, user: discord.User = None):
+    async def target(self, ctx: commands.Context, user: discord.User = None):
         """"Make a image target"""
         if user is None:
             user = ctx.author
@@ -73,7 +73,7 @@ class Funny(commands.Cog):
     @commands.cooldown(1, 7, commands.BucketType.member)
     @images.command(name="communism")
     @discord.app_commands.describe(user="Select a user")
-    async def deepfry(self, ctx: commands.Context, user: discord.User = None):
+    async def communism(self, ctx: commands.Context, user: discord.User = None):
         """"Make a image communism"""
         if user is None:
             user = ctx.author
