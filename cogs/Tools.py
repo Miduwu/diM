@@ -460,6 +460,25 @@ class Tools(commands.Cog):
         if not final and not d.embed:
             return await util.throw_error(ctx, text="This server doesn't have a valid message, re-set it using `/leave message`")
         await ctx.send(content=final if final else None, embed=d.embed)
+    
+    @commands.hybrid_group(name="tickets", aliases=["ticket"])
+    async def tickets(self, ctx):
+        """Manage the server tickets"""
+        ...
+    
+    @commands.cooldown(1, 15, commands.BucketType.guild)
+    @commands.has_guild_permissions(manage_guild=True)
+    @tickets.command(name="channel")
+    async def tickets_channel(self, ctx: commands.Context, channel: discord.TextChannel):
+        """Set the tickets channel"""
+        if not channel.permissions_for(ctx.guild.me).send_messages or not channel.permissions_for(ctx.guild.me).embed_links:
+            return await util.throw_error(ctx, text="I can't send messages/embeds in that channel")
+        emb = discord.Embed(colour=3447003, title="Tickets")
+        emb.set_thumbnail(url=ctx.guild.icon or self.bot.user.display_avatar)
+        emb.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)
+        emb.set_image(url="https://cdn.discordapp.com/attachments/1067294291992510575/1073427368246517820/IMG_20230209_201659.png")
+        await mongodb.set(table="guilds", id=ctx.guild.id, path="tickets.enabled", value=True)
+        await util.throw_fine(ctx, text=f"I've set {channel.mention} as the tickets channel")
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Tools(bot))

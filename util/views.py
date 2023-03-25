@@ -193,3 +193,30 @@ class Settings(discord.ui.View):
             self.embed.add_field(name="Custom message?", value="True" if data.get("message", None) else "False")
             self.embed.add_field(name="Commands", value="```$Pleave channel\n$Pleave message\n$Pleave preview```".replace("$P", self.ctx.clean_prefix))
             await i.response.edit_message(view=self, embed=self.embed)
+
+class Ticket(discord.ui.Modal, title="Ticket Creation"):
+    topic = discord.ui.TextInput(
+        label="Tag",
+        placeholder="Small tag to identify this ticket",
+        style=discord.TextStyle.short,
+        required=True,
+        min_length=2,
+        max_length=50
+    )
+
+    reason = discord.ui.TextInput(
+        label="Reason",
+        placeholder="A detailed reason about this ticket",
+        style=discord.TextStyle.paragraph,
+        required=True,
+        min_length=15,
+        max_length=300
+    )
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer(ephemeral=True)
+        try:
+            thread = await interaction.channel.create_thread(type=None, name=f"{interaction.user.name}#{interaction.user.discriminator}")
+            
+        except:
+            pass
