@@ -36,7 +36,7 @@ class Funny(commands.Cog):
     @images.command(name="discordjs")
     @discord.app_commands.describe(text="Something for the discord.js logo")
     async def discordjs(self, ctx: commands.Context, text: str):
-        """"Make a discordjs logo image"""
+        """Make a discordjs logo image"""
         b = await util.download_bytes(f"https://api.munlai.fun/image/discordjs?text={text[0:25]}")
         await ctx.send(file=discord.File(fp=b, filename="discordjs.png"))
     
@@ -54,7 +54,7 @@ class Funny(commands.Cog):
     @images.command(name="deepfry")
     @discord.app_commands.describe(user="Select a user")
     async def deepfry(self, ctx: commands.Context, user: discord.User = None):
-        """"Make a image deepfry""" # Despues vambiale si queres, soy una mierda para las descripciones
+        """Make a image deepfry""" # Despues vambiale si queres, soy una mierda para las descripciones
         if user is None: 
             user = ctx.author
         b = await util.download_bytes(f"https://api.munlai.fun/image/deepfry?=image={user.display_avatar}")
@@ -64,20 +64,20 @@ class Funny(commands.Cog):
     @images.command(name="target")
     @discord.app_commands.describe(user="Select a user")
     async def target(self, ctx: commands.Context, user: discord.User = None):
-        """"Make a image target"""
+        """Make a image target"""
         if user is None:
             user = ctx.author
-        b = await util.download_bytes(f" https://api.munlai.fun/image/target?image={user.display_avatar}")
+        b = await util.download_bytes(f"https://api.munlai.fun/image/target?image={user.display_avatar}")
         await ctx.send(file=discord.File(fp=b, filename="target.png"))
 
     @commands.cooldown(1, 7, commands.BucketType.member)
     @images.command(name="communism")
     @discord.app_commands.describe(user="Select a user")
     async def communism(self, ctx: commands.Context, user: discord.User = None):
-        """"Make a image communism"""
+        """Make a image communism"""
         if user is None:
             user = ctx.author
-        b = await util.download_bytes(f" https://api.munlai.fun/image/communism?image={user.display_avatar}")
+        b = await util.download_bytes(f"https://api.munlai.fun/image/communism?image={user.display_avatar}")
         await ctx.send(file=discord.File(fp=b, filename="communism.png"))
 
     @commands.hybrid_group(name="text")
