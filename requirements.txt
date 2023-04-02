@@ -6,4 +6,3 @@ deep_translator
 motor
 wordcloud
 regex
-openai

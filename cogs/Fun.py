@@ -1,7 +1,9 @@
 from discord.ext import commands
 from wordcloud import WordCloud
 from main import util
-import discord, io, re, random
+import discord, io, re, random, openai, os
+
+openai.api_key = os.getenv("openaikey")
 
 class Funny(commands.Cog):
     def __init__(self, bot: commands.Bot):
