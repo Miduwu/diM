@@ -1,9 +1,7 @@
 from discord.ext import commands
 from wordcloud import WordCloud
 from main import util
-import discord
-import io
-import re
+import discord, io, re, random
 
 class Funny(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -173,16 +171,16 @@ class Funny(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.channel)
     @commands.hybrid_command(name="ship")
     @discord.app_commands.describe(user1="user1", user2="user2")
-    async def ship(self, ctx: commands.Context, user1: discord.Member, user2: discord.Member):
+    async def ship(self, ctx: commands.Context, user1: discord.Member, user2: discord.Member = None):
         """Ship two members"""
-        if user2 is None:
-            user2 = ctx.author
         await ctx.defer()
-        T = util.choice(["1", "2"])[0]
+        if user2 is None:
+            user2 = user1
+            user1 = ctx.author
+        r = random.randint(1, 101)
         embed = discord.Embed()
-        embed.description(f"{user1.name} & {user2.name}")
-        embed.set_image(url=f"https://api.munlai.fun/image/ship?image={user1.display_avatar}&image2={user2.display_avatar}&type={T}")
-
+        embed.description = f"**{user1.name}** & **{user2.name}** are **{r}%** compatible! :heart:"
+        embed.set_image(url=f"https://api.munlai.fun/image/ship?image={user1.display_avatar}&image2={user2.display_avatar}&type={1 if r > 50 else 2}")
         await ctx.send(embed=embed)
 
 async def setup(bot: commands.Bot):
