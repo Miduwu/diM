@@ -2,6 +2,7 @@ from datetime import datetime
 from main import util, interpreter, mongodb as db, timeouts
 from discord.ext import commands
 from util.coreback import sync
+from util.views import Ticket
 import discord
 import re
 
@@ -76,6 +77,23 @@ class Listeners(commands.Cog):
                     except:
                         continue
                 await i.response.send_message("\n".join(m), ephemeral=True)
+            elif i.data["custom_id"] == "tickets":
+                try:
+                    await i.response.send_modal(Ticket(custom_id="modalticket"))
+                except:
+                    pass
+        elif i.type == discord.InteractionType.modal_submit:
+            if i.data["custom_id"] == "modalticket":
+                data: dict | None = await db.get(table="guilds", id=i.guild.id, path="tickets")
+                if not data or not data.get("enabled", None):
+                    return await i.response.send_message("Oops! It seems that this server doesn't have the ticket system enabled! <:bloboutage:1011458109060952154>", ephemeral=True)
+                try:
+                    thread = await i.channel.create_thread(name=f"T - {i.user.name}#{i.user.discriminator}")
+                    t = f"**Transcript:** </tickets transcript:{util.get_slash('tickets').id}>\n**Archive:** </tickets archive:{util.get_slash('tickets').id}>"
+                    await thread.send(content=f"Hi {i.user.mention}, welcome to your private ticket! <:blobheart:1011458084239056977>\n\nPlease explain be patient to get **support**, anyways you can mention people **(@wumpus)** to invite them to this channel!\n\n{t}\n\n**Support role:** {data.get('role', 'No support role set.')}", allowed_mentions=discord.AllowedMentions(users=True, roles=True))
+                    await i.response.send_message(content=f"Your ticket has been created in: {thread.mention} <:blobheart:1011458084239056977>", ephemeral=True)
+                except:
+                    await i.response.send_message(content="<:bloboutage:1011458109060952154> I was unable to open the ticket, try later or report this error to the bot support server!")
     
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):

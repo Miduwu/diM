@@ -86,6 +86,10 @@ class Util:
         else:
             return text
     
+    def get_slash(self, name: str):
+        b = next((x for x in self.app_commands if x.name == name), None)
+        return b
+    
     def load_exception(self, exception: Exception):
         return format_exception(exception, exception, exception.__traceback__)
     

@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from typing import List, Optional
 from main import mongodb
 
 class Base(discord.ui.View):
@@ -155,6 +154,7 @@ class Settings(discord.ui.View):
         discord.SelectOption(label="Main", description="Home page"),
         discord.SelectOption(label="Welcome", description="Manage the welcome system"),
         discord.SelectOption(label="Leave", description="Manage the leave/goodbye system"),
+        discord.SelectOption(label="Tickets", description="Manage the ticket system")
     ])
     async def callback(self, i: discord.Interaction, select: discord.ui.select):
         VALUE = i.data['values'][0]
@@ -193,6 +193,19 @@ class Settings(discord.ui.View):
             self.embed.add_field(name="Custom message?", value="True" if data.get("message", None) else "False")
             self.embed.add_field(name="Commands", value="```$Pleave channel\n$Pleave message\n$Pleave preview```".replace("$P", self.ctx.clean_prefix))
             await i.response.edit_message(view=self, embed=self.embed)
+        elif VALUE == "Tickets":
+            self.embed.clear_fields()
+            self.system = "tickets"
+            data = await mongodb.get(table="guilds", id=self.ctx.guild.id, path="tickets") or {}
+            self.children[0].disabled = data.get("enabled", False) == True
+            self.children[1].disabled = not data.get("enabled", False)
+            role = data.get("role", "No support role.")
+            self.embed.title = "Ticket System"
+            self.embed.description = f"To see the full commands of this module use `{self.ctx.clean_prefix}help Tools` or `/help Tools`"
+            self.embed.add_field(name="Status", value="Enabled" if data.get("enabled", None) else "Disabled")
+            self.embed.add_field(name="Support role", value=role)
+            self.embed.add_field(name="Commands", value="```$Ptickets channel\n$Ptickets role\n$Ptickets transcript\n$Ptickets archive```".replace("$P", self.ctx.clean_prefix), inline=False)
+            await i.response.edit_message(view=self, embed=self.embed)
 
 class Ticket(discord.ui.Modal, title="Ticket Creation"):
     topic = discord.ui.TextInput(
@@ -201,7 +214,7 @@ class Ticket(discord.ui.Modal, title="Ticket Creation"):
         style=discord.TextStyle.short,
         required=True,
         min_length=2,
-        max_length=50
+        max_length=25
     )
 
     reason = discord.ui.TextInput(
@@ -212,11 +225,3 @@ class Ticket(discord.ui.Modal, title="Ticket Creation"):
         min_length=15,
         max_length=300
     )
-
-    async def on_submit(self, interaction: discord.Interaction) -> None:
-        await interaction.response.defer(ephemeral=True)
-        try:
-            thread = await interaction.channel.create_thread(type=None, name=f"{interaction.user.name}#{interaction.user.discriminator}")
-            
-        except:
-            pass

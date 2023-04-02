@@ -469,16 +469,57 @@ class Tools(commands.Cog):
     @commands.cooldown(1, 15, commands.BucketType.guild)
     @commands.has_guild_permissions(manage_guild=True)
     @tickets.command(name="channel")
+    @discord.app_commands.describe(channel="The tickets channel where a message will be sent")
     async def tickets_channel(self, ctx: commands.Context, channel: discord.TextChannel):
         """Set the tickets channel"""
         if not channel.permissions_for(ctx.guild.me).send_messages or not channel.permissions_for(ctx.guild.me).embed_links:
             return await util.throw_error(ctx, text="I can't send messages/embeds in that channel")
-        emb = discord.Embed(colour=3447003, title="Tickets")
+        emb = discord.Embed(colour=3447003, title="Tickets", description="To open a ticket, press the button below!")
         emb.set_thumbnail(url=ctx.guild.icon or self.bot.user.display_avatar)
         emb.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)
+        emb.set_footer(text=f"{self.bot.user.name}'s Ticket System", icon_url=self.bot.user.display_avatar)
         emb.set_image(url="https://cdn.discordapp.com/attachments/1067294291992510575/1073427368246517820/IMG_20230209_201659.png")
+        v = discord.ui.View().add_item(discord.ui.Button(label="Open", emoji="📩", style=discord.ButtonStyle.blurple, custom_id="tickets"))
+        await channel.send(embed=emb, view=v)
         await mongodb.set(table="guilds", id=ctx.guild.id, path="tickets.enabled", value=True)
         await util.throw_fine(ctx, text=f"I've set {channel.mention} as the tickets channel")
+    
+    @commands.cooldown(1, 15, commands.BucketType.guild)
+    @commands.has_guild_permissions(manage_guild=True)
+    @tickets.command(name="role")
+    @discord.app_commands.describe(role="This role will be mentioned when someone opens a ticket")
+    async def tickets_role(self, ctx: commands.Context, role: discord.Role):
+        """Set the tickets support role"""
+        await mongodb.set(table="guilds", id=ctx.guild.id, path="tickets.role", value=role.mention)
+        await util.throw_fine(ctx, text=f"I've set {role.mention} as the tickets support role")
+    
+    @commands.cooldown(1, 60, commands.BucketType.channel)
+    @tickets.command(name="transcript")
+    async def tickets_transcript(self, ctx: commands.Context):
+        """Transcript the last 50 messages to a text file"""
+        if ctx.channel.type != discord.ChannelType.private_thread and ctx.channel.type != discord.ChannelType.public_thread and ctx.channel.type != discord.ChannelType.news_thread and not ctx.channel.name.startswith("T - "):
+            return await util.throw_error(ctx, text="This isn't a valid ticket")
+        messages = [message async for message in ctx.channel.history(limit=50)]
+        if len(messages) == 0:
+            return await util.throw_error(ctx, text="There aren't messages yet to show")
+        t = []
+        for message in reversed(messages):
+            t.append(f"\n{message.author.name}#{message.author.discriminator} [{message.created_at}]:\n{message.content}")
+        await ctx.send(file=discord.File(io.StringIO("\n".join(t)), "transcript.txt"))
+    
+    @tickets.command(name="archive")
+    async def tickets_archive(self, ctx: commands.Context):
+        """Archives this ticket"""
+        if ctx.channel.type != discord.ChannelType.private_thread and ctx.channel.type != discord.ChannelType.public_thread and ctx.channel.type != discord.ChannelType.news_thread and not ctx.channel.name.startswith("T - "):
+            return await util.throw_error(ctx, text="This isn't a valid ticket")
+        v = Confirmation(ctx=ctx)
+        v.message = await ctx.send("Are you sure to archive this ticket?", view=v)
+        async def f(i: discord.Interaction):
+            await i.response.defer()
+            await ctx.channel.edit(archived=True)
+            await v.message.edit(content="This ticket was archived.")
+        v.call_me = f
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Tools(bot))

@@ -141,19 +141,20 @@ async def send_help_command(ctx: commands.Context, command: commands.HybridComma
     as_slash: discord.app_commands.AppCommand = _.find(slash, lambda x: x.name == command.name)
     emb = discord.Embed(title=command.name, colour=3447003)
     emb.set_author(name=f'{ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.display_avatar)
+    emb.set_footer(text=f"{ctx.bot.user.name}#{ctx.bot.user.discriminator}", icon_url=ctx.bot.user.display_avatar)
     if not command.app_command.parent:
-        emb.add_field(name='Slash', value=f"</{as_slash.name}:{as_slash.id}>")
-        emb.add_field(name='Module', value=command.cog.__cog_name__)
-        emb.add_field(name='Cooldown', value=f'`{command.cooldown.rate}/{round(command.cooldown.per)}s`' if command.cooldown else '`None`')
-        emb.add_field(name='Usage', value=f'```fix\n{ctx.clean_prefix}{parse_aliases(command)} {parse_params(command.params)}```')
-        emb.description = as_slash.description or 'No description.'
+        slash = f"</{as_slash.name}:{as_slash.id}>"
+        module = command.cog.__cog_name__
+        cooldown = round(command.cooldown.per) if command.cooldown else "None"
+        usage = f'```fix\n{ctx.clean_prefix}{parse_aliases(command)} {parse_params(command.params)}```'
+        emb.description = f"**Description:** {as_slash.description or 'No description.'}\n**Slash:** {slash}\n**Category:** {module}\n**Cooldown:** {cooldown}s\n**Usage:** {usage}"
     else:
         group: discord.app_commands.AppCommand = _.find(slash, lambda x: x.name == command.app_command.parent.name)
         subcmd = _.find(group.options, lambda c: c.name == command.name and c.type == discord.AppCommandOptionType.subcommand)
-        emb.add_field(name='Slash', value=f"</{group.name} {subcmd.name}:{group.id}>")
-        emb.add_field(name='Module', value=command.cog.__cog_name__)
-        emb.add_field(name='Cooldown', value=f'`{command.cooldown.rate}/{round(command.cooldown.per)}s`' if command.cooldown else '`None`')
-        emb.add_field(name='Usage', value=f'```fix\n{ctx.clean_prefix}{parse_aliases(command)} {parse_params(command.params)}```')
-        emb.description = subcmd.description or 'No description.'
+        slash = f"</{group.name} {subcmd.name}:{group.id}>"
+        module = command.cog.__cog_name__
+        cooldown = round(command.cooldown.per) if command.cooldown else "None"
+        usage = f'```fix\n{ctx.clean_prefix}{parse_aliases(command)} {parse_params(command.params)}```'
+        emb.description = f"**Description:** {subcmd.description or 'No description.'}\n**Slash:** {slash}\n**Category:** {module}\n**Cooldown:** {cooldown}s\n**Usage:** {usage}"
 
     await ctx.send(embed=emb)

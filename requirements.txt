@@ -1,4 +1,4 @@
-discord.py
+discord.py==2.2.2
 aiohttp==3.8.1
 pydash==5.1.0
 python-dotenv==0.21.0
@@ -6,3 +6,4 @@ deep_translator
 motor
 wordcloud
 regex
+openai

@@ -80,6 +80,16 @@ class Funny(commands.Cog):
         b = await util.download_bytes(f"https://api.munlai.fun/image/communism?image={user.display_avatar}")
         await ctx.send(file=discord.File(fp=b, filename="communism.png"))
 
+    @commands.cooldown(1, 7, commands.BucketType.member)
+    @images.command(name="beautiful")
+    @discord.app_commands.describe(user="Select a user")
+    async def beautiful(self, ctx: commands.Context, user: discord.User = None):
+        """Make a image beautiful"""
+        if user is None:
+            user = ctx.author
+        b = await util.download_bytes(f"https://api.munlai.fun/image/beautiful?image={user.display_avatar}")
+        await ctx.send(file=discord.File(fp=b, filename="beautiful.png"))
+
     @commands.hybrid_group(name="text")
     async def texts(self, ctx):
         """Beautify your text using some subcommand"""
@@ -159,6 +169,21 @@ class Funny(commands.Cog):
         image.save(imgbytes, format="PNG")
         imgbytes.seek(0)
         await ctx.send(file=discord.File(fp=imgbytes, filename="worcloud.png"))
+
+    @commands.cooldown(1, 10, commands.BucketType.channel)
+    @commands.hybrid_command(name="ship")
+    @discord.app_commands.describe(user1="user1", user2="user2")
+    async def ship(self, ctx: commands.Context, user1: discord.Member, user2: discord.Member):
+        """Ship two members"""
+        if user2 is None:
+            user2 = ctx.author
+        await ctx.defer()
+        T = util.choice(["1", "2"])[0]
+        embed = discord.Embed()
+        embed.description(f"{user1.name} & {user2.name}")
+        embed.set_image(url=f"https://api.munlai.fun/image/ship?image={user1.display_avatar}&image2={user2.display_avatar}&type={T}")
+
+        await ctx.send(embed=embed)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Funny(bot))
