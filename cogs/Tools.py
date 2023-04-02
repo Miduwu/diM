@@ -4,8 +4,33 @@ from discord.ext import commands
 import pydash as _
 from util.views import Paginator, Confirmation, Base, Settings
 from difflib import get_close_matches
+from typing_extensions import Annotated
 import re
 import io
+
+class TagName(commands.clean_content):
+    def __init__(self, *, lower: bool = False):
+        self.lower: bool = lower
+        super().__init__()
+
+    async def convert(self, ctx: commands.Context, argument: str) -> str:
+        converted = await super().convert(ctx, argument)
+        lower = converted.lower().strip()
+
+        if not lower:
+            return await util.throw_error(ctx, text="Missing tag name")
+
+        if len(lower) > 100:
+            return await util.throw_error(ctx, text="Tag name length is too long")
+
+        first_word, _, _ = lower.partition(' ')
+
+        # get tag command.
+        root: commands.GroupMixin = ctx.bot.get_command('tag')  # type: ignore
+        if first_word in root.all_commands:
+            return await util.throw_error(ctx, text="This tag name starts with a reserved word")
+
+        return converted.strip() if not self.lower else lower
 
 class Tools(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -37,7 +62,7 @@ class Tools(commands.Cog):
     @commands.cooldown(1, 4, commands.BucketType.member)
     @commands.hybrid_group(name="tag", fallback="view", aliases=["t"])
     @discord.app_commands.describe(tag="The tag to view")
-    async def tags(self, ctx: commands.Context, tag: str):
+    async def tags(self, ctx: commands.Context, *, tag: str):
         """Manage the server tags, or view one"""
         await ctx.defer()
         _tags_ = await mongodb.get(table="guilds", id=ctx.guild.id, path="tags.list") or []
@@ -52,7 +77,7 @@ class Tools(commands.Cog):
     @commands.cooldown(1, 25, commands.BucketType.member)
     @tags.command(name="add")
     @discord.app_commands.describe(name="The tag name", content="The tag content")
-    async def tag_add(self, ctx: commands.Context, name: str, *, content: str):
+    async def tag_add(self, ctx: commands.Context, name: Annotated[str, TagName], *, content: str):
         """Add a server tag"""
         await ctx.defer()
         _tags_ = await mongodb.get(table="guilds", id=ctx.guild.id, path="tags.list") or []
@@ -70,7 +95,7 @@ class Tools(commands.Cog):
     @commands.cooldown(1, 15, commands.BucketType.member)
     @tags.command(name="modify")
     @discord.app_commands.describe(tag="The tag name to modify", content="The new tag contet")
-    async def tag_modify(self, ctx: commands.Context, tag: str, *, content: str):
+    async def tag_modify(self, ctx: commands.Context, tag: Annotated[str, TagName(lower=True)], *, content: str):
         """Edit a server tag"""
         await ctx.defer()
         _tags_ = await mongodb.get(table="guilds", id=ctx.guild.id, path="tags.list") or []
@@ -87,7 +112,7 @@ class Tools(commands.Cog):
     @commands.cooldown(1, 9, commands.BucketType.member)
     @tags.command(name="delete")
     @discord.app_commands.describe(tag="The tag to delete")
-    async def tag_delete(self, ctx: commands.Context, tag: str):
+    async def tag_delete(self, ctx: commands.Context, *, tag: str):
         """Delete a server tag"""
         await ctx.defer()
         _tags_ = await mongodb.get(table="guilds", id=ctx.guild.id, path="tags.list") or []
@@ -99,7 +124,7 @@ class Tools(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.member)
     @tags.command(name="raw", aliases=["source"])
     @discord.app_commands.describe(tag="The tag to get the source")
-    async def tag_raw(self, ctx: commands.Context, tag: str):
+    async def tag_raw(self, ctx: commands.Context, *, tag: str):
         """Get a tag contet source"""
         await ctx.defer()
         _tags_ = await mongodb.get(table="guilds", id=ctx.guild.id, path="tags.list") or []
@@ -118,7 +143,7 @@ class Tools(commands.Cog):
     @commands.cooldown(1, 7, commands.BucketType.member)
     @tags.command(name="search")
     @discord.app_commands.describe(tag="Query to search in server tags")
-    async def tag_search(self, ctx: commands.Context, tag: str):
+    async def tag_search(self, ctx: commands.Context, *, tag: str):
         """Search something in the server tags"""
         await ctx.defer()
         _tags_ = await mongodb.get(table="guilds", id=ctx.guild.id, path="tags.list") or []

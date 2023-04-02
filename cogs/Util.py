@@ -151,27 +151,6 @@ class Util(commands.Cog):
             await ctx.send(f"**__{g.source.upper()}__ > __{g.target.upper()}__**```fix\n{g.translate(text)}```")
         except:
             await util.throw_error(ctx, text="Invalid translation, something went wrong")
-
-    @commands.cooldown(1, 8, commands.BucketType.member)
-    @commands.hybrid_command(name="weather")
-    @discord.app_commands.describe(city="The city to search")
-    async def weather(self, ctx: commands.Context, *, city: str):
-        """Get some city weather"""
-        v = await util.get(url="https://api.miduwu.ga/json/weather", params={"query": city}, as_dict=True)
-        if not v or v.status != 200:
-            return await util.throw_error(ctx, text=f"Invalid city provided")
-        await ctx.defer()
-        emb = discord.Embed(title=v.data["data"]["location"]["name"], color=3447003)
-        emb.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
-        emb.add_field(name="Coordinates:", value=f'{v.data["data"]["location"]["lat"]}, {v.data["data"]["location"]["long"]}')
-        emb.add_field(name="Timezone:", value=v.data["data"]["location"]["timezone"])
-        emb.add_field(name="Temperature:", value=f'{v.data["data"]["current"]["temperature"]} °C')
-        emb.add_field(name="Sky:", value=v.data["data"]["current"]["skytext"])
-        emb.add_field(name="Humidity:", value=v.data["data"]["current"]["humidity"])
-        emb.add_field(name="Wind Speed:", value=v.data["data"]["current"]["windspeed"])
-        emb.set_thumbnail(url=v.data["data"]["current"]["imageUrl"])
-        emb.timestamp = datetime.now()
-        await ctx.send(embed=emb)
     
     @commands.hybrid_group(name="emoji")
     async def emoji_group(self, ctx):
