@@ -6,3 +6,4 @@ deep_translator
 motor
 wordcloud
 regex
+typing_extensions
