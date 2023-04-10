@@ -8,6 +8,7 @@ openai.api_key = os.getenv("openaikey")
 class Funny(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.api_domain = "https://apy.cyberghxst.ga"
     
     @commands.hybrid_group(name="image")
     async def images(self, ctx):
@@ -37,7 +38,7 @@ class Funny(commands.Cog):
     @discord.app_commands.describe(text="Something for the discord.js logo")
     async def discordjs(self, ctx: commands.Context, text: str):
         """Make a discordjs logo image"""
-        b = await util.download_bytes(f"https://api.munlai.fun/image/discordjs?text={text[0:25]}")
+        b = await util.download_bytes(f"{self.api_domain}/image/discordjs?text={text[0:25]}")
         await ctx.send(file=discord.File(fp=b, filename="discordjs.png"))
     
     @commands.cooldown(1, 7, commands.BucketType.member)
@@ -47,7 +48,7 @@ class Funny(commands.Cog):
         """Make the avatar in rainbow"""
         if user is None:
             user = ctx.author
-        b = await util.download_bytes(f"https://api.munlai.fun/image/gay?=image={user.display_avatar}")
+        b = await util.download_bytes(f"{self.api_domain}/image/gay?image={user.display_avatar}")
         await ctx.send(file=discord.File(fp=b, filename="rainbow.png"))
 
     @commands.cooldown(1, 7, commands.BucketType.member)
@@ -57,7 +58,7 @@ class Funny(commands.Cog):
         """Make a image deepfry""" # Despues vambiale si queres, soy una mierda para las descripciones
         if user is None: 
             user = ctx.author
-        b = await util.download_bytes(f"https://api.munlai.fun/image/deepfry?=image={user.display_avatar}")
+        b = await util.download_bytes(f"{self.api_domain}/image/deepfry?image={user.display_avatar}")
         await ctx.send(file=discord.File(fp=b, filename="deepfry.png"))
 
     @commands.cooldown(1, 7, commands.BucketType.member)
@@ -67,18 +68,18 @@ class Funny(commands.Cog):
         """Make a image target"""
         if user is None:
             user = ctx.author
-        b = await util.download_bytes(f"https://api.munlai.fun/image/target?image={user.display_avatar}")
+        b = await util.download_bytes(f"{self.api_domain}/image/target?image={user.display_avatar}")
         await ctx.send(file=discord.File(fp=b, filename="target.png"))
 
     @commands.cooldown(1, 7, commands.BucketType.member)
-    @images.command(name="communism")
+    @images.command(name="thisis")
     @discord.app_commands.describe(user="Select a user")
-    async def communism(self, ctx: commands.Context, user: discord.User = None):
-        """Make a image communism"""
+    async def thisis(self, ctx: commands.Context, user: discord.User = None):
+        """Make a this is spotify image card"""
         if user is None:
             user = ctx.author
-        b = await util.download_bytes(f"https://api.munlai.fun/image/communism?image={user.display_avatar}")
-        await ctx.send(file=discord.File(fp=b, filename="communism.png"))
+        b = await util.download_bytes(f"{self.api_domain}/image/thisis?image={user.display_avatar}&text={user.name}")
+        await ctx.send(file=discord.File(fp=b, filename="thisis.png"))
 
     @commands.cooldown(1, 7, commands.BucketType.member)
     @images.command(name="beautiful")
@@ -87,7 +88,7 @@ class Funny(commands.Cog):
         """Make a image beautiful"""
         if user is None:
             user = ctx.author
-        b = await util.download_bytes(f"https://api.munlai.fun/image/beautiful?image={user.display_avatar}")
+        b = await util.download_bytes(f"{self.api_domain}/image/beautiful?image={user.display_avatar}")
         await ctx.send(file=discord.File(fp=b, filename="beautiful.png"))
 
     @commands.hybrid_group(name="text")
@@ -182,7 +183,7 @@ class Funny(commands.Cog):
         r = random.randint(1, 101)
         embed = discord.Embed()
         embed.description = f"**{user1.name}** & **{user2.name}** are **{r}%** compatible! :heart:"
-        embed.set_image(url=f"https://api.munlai.fun/image/ship?image={user1.display_avatar}&image2={user2.display_avatar}&type={1 if r > 50 else 2}")
+        embed.set_image(url=f"{self.api_domain}/image/ship?image={user1.display_avatar}&image2={user2.display_avatar}&type={1 if r > 50 else 2}")
         await ctx.send(embed=embed)
 
 async def setup(bot: commands.Bot):

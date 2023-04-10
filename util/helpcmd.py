@@ -147,14 +147,16 @@ async def send_help_command(ctx: commands.Context, command: commands.HybridComma
         module = command.cog.__cog_name__
         cooldown = round(command.cooldown.per) if command.cooldown else "None"
         usage = f'```fix\n{ctx.clean_prefix}{parse_aliases(command)} {parse_params(command.params)}```'
-        emb.description = f"**Description:** {as_slash.description or 'No description.'}\n**Slash:** {slash}\n**Category:** {module}\n**Cooldown:** {cooldown}s\n**Usage:** {usage}"
+        example = f"\n**Example:** {command.__original_kwargs__.get('example') if command.__original_kwargs__.get('example', None) else ''}"
+        emb.description = f"**Description:** {as_slash.description or 'No description.'}\n**Slash:** {slash}\n**Category:** {module}\n**Cooldown:** {cooldown}s{example}\n**Usage:** {usage}"
     else:
         group: discord.app_commands.AppCommand = _.find(slash, lambda x: x.name == command.app_command.parent.name)
         subcmd = _.find(group.options, lambda c: c.name == command.name and c.type == discord.AppCommandOptionType.subcommand)
         slash = f"</{group.name} {subcmd.name}:{group.id}>"
         module = command.cog.__cog_name__
         cooldown = round(command.cooldown.per) if command.cooldown else "None"
+        example = f"\n**Example:** {command.__original_kwargs__.get('example') if command.__original_kwargs__.get('example', None) else ''}"
         usage = f'```fix\n{ctx.clean_prefix}{parse_aliases(command)} {parse_params(command.params)}```'
-        emb.description = f"**Description:** {subcmd.description or 'No description.'}\n**Slash:** {slash}\n**Category:** {module}\n**Cooldown:** {cooldown}s\n**Usage:** {usage}"
+        emb.description = f"**Description:** {subcmd.description or 'No description.'}\n**Slash:** {slash}\n**Category:** {module}\n**Cooldown:** {cooldown}s{example}\n**Usage:** {usage}"
 
     await ctx.send(embed=emb)

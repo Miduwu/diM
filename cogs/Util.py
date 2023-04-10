@@ -14,6 +14,7 @@ import pydash as _
 class Util(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+        self.api_domain = "https://apy.cyberghxst.ga/"
 
     @commands.hybrid_group(name="user")
     async def user(self, ctx: commands.Context):
@@ -459,7 +460,7 @@ class Util(commands.Cog):
     @discord.app_commands.describe(query="The route to search in the official api (APY)")
     async def apy(self, ctx: commands.Context, query: str):
         """Search a route in the bot API (APY)"""
-        res: dict | None = await util.get(url="https://api.munlai.fun/json/route", params={"query": query})
+        res: dict | None = await util.get(url=f"{self.api_domain}/json/route", params={"query": query})
         if not res or not res.get("data", None):
             return await util.throw_error(ctx, text='I was unable to find something related to that')
         await ctx.defer()

@@ -43,7 +43,7 @@ class Listeners(commands.Cog):
         elif isinstance(error, commands.ChannelNotReadable):
             return await util.throw_error(ctx, text=f"I can't read messages in that channel, i don't have access to it")
         else:
-            print("\n".join(util.load_exception(error)))
+            pass
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -185,8 +185,8 @@ class Listeners(commands.Cog):
                 emb.set_footer(text=f"{self.bot.user.name} Starboard | {m.id}", icon_url=self.bot.user.display_avatar)
                 v = discord.ui.View().add_item(discord.ui.Button(style=discord.ButtonStyle.link, label="Jump to message", url=m.jump_url))
                 await channel.send(embed=emb, content=f"{load_star(star_reaction.count, data.get('stars', 2))} **{star_reaction.count}** <#{payload.channel_id}>", view=v)
-        except Exception as err:
-            print("STARBOARD ERROR", err)
+        except:
+            pass
     
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
@@ -211,14 +211,12 @@ class Listeners(commands.Cog):
             if not star_message:
                 return
             # stars = int("".join(star_message.content.split(" ")[1].split("*")))
-            print(star_reaction.count, data.get("stars", 2))
             if star_reaction.count < data.get("stars", 2):
                 await star_message.delete()
             else:
                 await star_message.edit(content=f"{load_star(star_reaction.count, data.get('stars', 2))} **{star_reaction.count}** <#{payload.channel_id}>")
-        except Exception as err:
-            print("ayayay")
-            print("STARBOARD REMOVE ERROR", err)
+        except:
+            pass
     
     @commands.Cog.listener()
     async def on_raw_reaction_clear(self, payload: discord.RawReactionClearEvent):
@@ -240,8 +238,20 @@ class Listeners(commands.Cog):
             if not star_message:
                 return
             await star_message.delete()
-        except Exception as err:
-            print("STARBOARD ALL ERROR", err)
+        except:
+            pass
+    
+    @commands.Cog.listener()
+    async def on_guild_join(self, guild: discord.Guild):
+        channel = self.bot.get_channel(812549187388178486) or await self.bot.fetch_channel(812549187388178486)
+        t = f"**New server!** <:photoblob:1011458149653426226>\n\n> **Name:** {guild.name}\n> **Members:** {guild.member_count}\n> **Owner:** {f'{guild.owner.name}#{guild.owner.discriminator}' if guild.owner else 'Unknown'}\n\nNow i am in **{len(self.bot.guilds)}** servers!"
+        await channel.send(t)
+    
+    @commands.Cog.listener()
+    async def on_guild_remove(self, guild: discord.Guild):
+        channel = self.bot.get_channel(812549187388178486) or await self.bot.fetch_channel(812549187388178486)
+        t = f"**New server!** <:blobthump:1011458144947408958>\n\n> **Name:** {guild.name}\n> **Members:** {guild.member_count}\n> **Owner:** {f'{guild.owner.name}#{guild.owner.discriminator}' if guild.owner else 'Unknown'}\n\nNow i am in **{len(self.bot.guilds)}** servers!"
+        await channel.send(t)
 
 def load_star(stars: int, total: int) -> str:
     final = '⭐'

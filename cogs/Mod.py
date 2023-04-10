@@ -1,4 +1,5 @@
 from discord.ext import commands
+from typing_extensions import Annotated
 from main import util
 import discord
 import datetime
@@ -175,6 +176,41 @@ class Mod(commands.Cog):
             await util.throw_fine(ctx, text=f"***{user.name}#{user.discriminator}*** was unbanned successfully!", bold=False)
         except:
             await util.throw_error(ctx, text="I was unable to unban that user")
+    
+    @commands.cooldown(1, 30, commands.BucketType.channel)
+    @commands.bot_has_guild_permissions(manage_messages=True, add_reactions=True, embed_links=True)
+    @commands.hybrid_command(name="poll", aliases=["survey"], example='!poll my title | option 1 | option 2')
+    @discord.app_commands.describe(text="The poll title and options separated by a space, you can use quotation marks for multiple word option, example: \"option one\" ")
+    async def poll(self, ctx: commands.Context, *, text: str):
+        """Make a poll"""
+        ops = text.split("|")
+        title, question, ops = f"📫 New poll started by **{ctx.author.name}#{ctx.author.discriminator}**", ops[0], ops[1:] if len(ops) > 1 else []
+        ops = [x.strip() for x in ops]
+        if ops and len(ops) > 15:
+            return await util.throw_error(ctx, text="You can't add more than 15 options")
+        if not len(ops):
+            emb = discord.Embed(color=3447003, description=f"{title}\n```fix\n{question[:300]}```")
+            emb.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+            m = await ctx.channel.send(embed=emb)
+            await m.add_reaction("tokyo_like:964965007647445012")
+            await m.add_reaction("tokyo_dislike:964965207485075506")
+            await m.add_reaction("tokyo_question:962507048321441792")
+            if ctx.interaction:
+                await util.throw_fine(ctx, text="I've created the poll successfully!")
+            else:
+                await ctx.message.delete()
+        else:
+            ALPHABET = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯', '🇰', '🇱', '🇲', '🇳', '🇴', '🇵', '🇶', '🇷', '🇸', '🇹', '🇺', '🇻', '🇼', '🇽', '🇾', '🇿']
+            arr = []
+            for index, item in enumerate(ops):
+                arr.append(f"{ALPHABET[index]}:: {item[:100]}")
+            arr = "\n".join(arr)
+            emb = discord.Embed(color=3447003, description=f"```fix\n{question[:300]}```\n{arr}")
+            emb.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+            m = await ctx.channel.send(content=title, embed=emb)
+            for index, item in enumerate(ops):
+                await m.add_reaction(ALPHABET[index])
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Mod(bot))
