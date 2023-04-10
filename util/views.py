@@ -154,7 +154,8 @@ class Settings(discord.ui.View):
         discord.SelectOption(label="Main", description="Home page"),
         discord.SelectOption(label="Welcome", description="Manage the welcome system"),
         discord.SelectOption(label="Leave", description="Manage the leave/goodbye system"),
-        discord.SelectOption(label="Tickets", description="Manage the ticket system")
+        discord.SelectOption(label="Tickets", description="Manage the ticket system"),
+        discord.SelectOption(label="Starboard", description="Manage the starboard system")
     ])
     async def callback(self, i: discord.Interaction, select: discord.ui.select):
         VALUE = i.data['values'][0]
@@ -206,6 +207,22 @@ class Settings(discord.ui.View):
             self.embed.add_field(name="Support role", value=role)
             self.embed.add_field(name="Commands", value="```$Ptickets channel\n$Ptickets role\n$Ptickets transcript\n$Ptickets archive```".replace("$P", self.ctx.clean_prefix), inline=False)
             await i.response.edit_message(view=self, embed=self.embed)
+        elif VALUE == "Starboard":
+            self.embed.clear_fields()
+            self.system = "starboard"
+            data = await mongodb.get(table="guilds", id=self.ctx.guild.id, path="starboard") or {}
+            self.children[0].disabled = data.get("enabled", False) == True
+            self.children[1].disabled = not data.get("enabled", False)
+            channel = self.ctx.guild.get_channel(data.get("channel")) if data.get("channel", None) else None
+            stars = data.get("stars", 2)
+            self.embed.title = "Starboard System"
+            self.embed.description = f"To see the full commands of this module use `{self.ctx.clean_prefix}help Tools` or `/help Tools`"
+            self.embed.add_field(name="Status", value="Enabled" if data.get("enabled", None) else "Disabled")
+            self.embed.add_field(name="Channel", value=channel.mention if channel else "Not in cache")
+            self.embed.add_field(name="Stars required", value=str(stars))
+            self.embed.add_field(name="Commands", value="```$Pstarboard channel\n$Pstarboard stars```".replace("$P", self.ctx.clean_prefix), inline=False)
+            await i.response.edit_message(view=self, embed=self.embed)
+
 
 class Ticket(discord.ui.Modal, title="Ticket Creation"):
     topic = discord.ui.TextInput(

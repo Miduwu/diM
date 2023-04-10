@@ -11,6 +11,7 @@ import pydash as _
 import io
 from PIL import Image
 import regex
+import re
 
 class Util:
     def __init__(self, bot: commands.Bot) -> None:
@@ -121,7 +122,10 @@ class Util:
             return True if re.match('^([A-F0-9]{6}|[A-F0-9]{3})$', text.replace("#", ""), flags=re.IGNORECASE) else False
         except:
             return None
-        
+    
+    def is_url(self, text: str):
+        r = "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{2,6}"
+        return True if re.match(r, text) else False
 
 async def sync(cls, *, guild: Optional[discord.abc.Snowflake] = None) -> List[discord.app_commands.AppCommand]:
         """|coro|

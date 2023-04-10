@@ -544,6 +544,34 @@ class Tools(commands.Cog):
             await ctx.channel.edit(archived=True)
             await v.message.edit(content="This ticket was archived.")
         v.call_me = f
+    
+    @commands.hybrid_group(name="starboard", aliases=["star"])
+    async def starboard(self, ctx: commands.Context):
+        """Manage the starboard settings"""
+        ...
+    
+    @commands.cooldown(1, 15, commands.BucketType.guild)
+    @commands.has_guild_permissions(manage_guild=True)
+    @starboard.command(name="channel")
+    @discord.app_commands.describe(channel="The text channel for the starboard")
+    async def starboard_channel(self, ctx: commands.Context, channel: discord.TextChannel):
+        """Set the starboard channel"""
+        if not channel.permissions_for(ctx.guild.me).send_messages:
+            return await util.throw_error(ctx, text="I can't send messages in that channel")
+        await mongodb.set(table="guilds", id=ctx.guild.id, path="starboard.channel", value=channel.id)
+        await mongodb.set(table="guilds", id=ctx.guild.id, path="starboard.enabled", value=True)
+        await util.throw_fine(ctx, text=f"I've set {channel.mention} as the starboard channel")
+
+    @commands.cooldown(1, 15)
+    @commands.has_guild_permissions(manage_guild=True)
+    @starboard.command(name="stars")
+    @discord.app_commands.describe()
+    async def starboard_stars(self, ctx: commands.Context, stars: int):
+        """Set the starboard stars (default is 3)"""
+        if stars > 20 or 2 > stars:
+            return await util.throw_error(ctx, text="Invalid range provided, it must be lower than 20 and higher than 2")
+        await mongodb.set(table="guilds", id=ctx.guild.id, path="starboard.stars", value=stars)
+        await util.throw_fine(ctx, text=f"I've set **{stars}** as the required stars for a message in the starboard")
 
 
 async def setup(bot: commands.Bot):

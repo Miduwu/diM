@@ -270,8 +270,12 @@ class Util(commands.Cog):
         await ctx.defer()
         at = await message.attachments[0].to_file() if message.attachments else None
         try:
-            await ctx.defer()
-            await ctx.send(content=message.content, embeds=message.embeds, file=at if at else None)
+            if not message.embeds and not len(message.embeds) and message.content:
+                emb = discord.Embed(color=3447003, description=message.content[:4095])
+                emb.set_author(name=f"{message.author.name}#{message.author.discriminator}")
+                await ctx.send(embed=emb, file=at if at else None)
+            else:
+                await ctx.send(content=message.content, embeds=message.embeds, file=at if at else None)
         except:
             await util.throw_error(ctx, text="I was unable to quote that message")
     

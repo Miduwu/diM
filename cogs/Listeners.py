@@ -6,6 +6,8 @@ from util.views import Ticket
 import discord
 import re
 
+URL_REGEXP = "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+
 class Listeners(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
@@ -146,6 +148,110 @@ class Listeners(commands.Cog):
             except:
                 pass
         await leave(payload.user)
+    
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        if str(payload.emoji) != "⭐" or not payload.guild_id:
+            return
+        m, c = None, None
+        try:
+            c = self.bot.get_channel(payload.channel_id) or await self.bot.fetch_channel(payload.channel_id)
+            m = await c.fetch_message(payload.message_id)
+            if not m:
+                return
+        except:
+            return
+        star_reaction = discord.utils.get(m.reactions, emoji="⭐")
+        data: dict | None = await db.get(table="guilds", id=payload.guild_id, path="starboard")
+        channel = self.bot.get_channel(data.get("channel")) or await self.bot.fetch_channel(data.get("channel")) if data.get("channel", None) else None
+        if not data.get("enabled", None) or not channel or c.nsfw or data.get("stars", 2) > star_reaction.count:
+            return
+        try:
+            fetched = [message async for message in channel.history(limit=100)]
+            star_message = next((x for x in fetched if len(x.embeds) and x.embeds[0].footer and x.embeds[0].footer.text and x.embeds[0].footer.text.endswith(str(m.id)) and x.author.id == self.bot.user.id), None)
+            if star_message:
+                await star_message.edit(content=f"{load_star(star_reaction.count, data.get('stars', 2))} **{star_reaction.count}** <#{payload.channel_id}>")
+            else:
+                content = m.content[:4000] if m.content else ""
+                image = m.attachments[0].url if m.attachments and len(m.attachments) and "image" in (m.attachments[0].content_type or "") else ""
+                if not image:
+                    urls = re.findall(URL_REGEXP, content, flags=re.MULTILINE)
+                    image = urls[0] if urls and len(urls) and util.is_url(urls[0]) else ""
+                if not image and not content:
+                    return
+                emb = discord.Embed(description=content or None, color=16776960)
+                emb.set_author(name=f"{m.author.name}#{m.author.discriminator}", icon_url=m.author.display_avatar)
+                emb.set_image(url=image)
+                emb.set_footer(text=f"{self.bot.user.name} Starboard | {m.id}", icon_url=self.bot.user.display_avatar)
+                v = discord.ui.View().add_item(discord.ui.Button(style=discord.ButtonStyle.link, label="Jump to message", url=m.jump_url))
+                await channel.send(embed=emb, content=f"{load_star(star_reaction.count, data.get('stars', 2))} **{star_reaction.count}** <#{payload.channel_id}>", view=v)
+        except Exception as err:
+            print("STARBOARD ERROR", err)
+    
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
+        if str(payload.emoji) != "⭐" or not payload.guild_id:
+            return
+        m, c = None, None
+        try:
+            c = self.bot.get_channel(payload.channel_id) or await self.bot.fetch_channel(payload.channel_id)
+            m = await c.fetch_message(payload.message_id)
+            if not m:
+                return
+        except:
+            return
+        star_reaction = discord.utils.get(m.reactions, emoji="⭐")
+        data: dict | None = await db.get(table="guilds", id=payload.guild_id, path="starboard")
+        channel = self.bot.get_channel(data.get("channel")) or await self.bot.fetch_channel(data.get("channel")) if data.get("channel", None) else None
+        if not data.get("enabled", None) or not star_reaction or not channel or c.nsfw:
+            return
+        try:
+            fetched = [message async for message in channel.history(limit=100)]
+            star_message = next((x for x in fetched if len(x.embeds) and x.embeds[0].footer and x.embeds[0].footer.text and x.embeds[0].footer.text.endswith(str(m.id)) and x.author.id == self.bot.user.id), None)
+            if not star_message:
+                return
+            # stars = int("".join(star_message.content.split(" ")[1].split("*")))
+            print(star_reaction.count, data.get("stars", 2))
+            if star_reaction.count < data.get("stars", 2):
+                await star_message.delete()
+            else:
+                await star_message.edit(content=f"{load_star(star_reaction.count, data.get('stars', 2))} **{star_reaction.count}** <#{payload.channel_id}>")
+        except Exception as err:
+            print("ayayay")
+            print("STARBOARD REMOVE ERROR", err)
+    
+    @commands.Cog.listener()
+    async def on_raw_reaction_clear(self, payload: discord.RawReactionClearEvent):
+        m, c = None, None
+        try:
+            c = self.bot.get_channel(payload.channel_id) or await self.bot.fetch_channel(payload.channel_id)
+            m = await c.fetch_message(payload.message_id)
+            if not m:
+                return
+        except:
+            return
+        data: dict | None = await db.get(table="guilds", id=payload.guild_id, path="starboard")
+        channel = self.bot.get_channel(data.get("channel")) or await self.bot.fetch_channel(data.get("channel")) if data.get("channel", None) else None
+        if not data.get("enabled", None) or not channel:
+            return
+        try:
+            fetched = [message async for message in channel.history(limit=100)]
+            star_message = next((x for x in fetched if len(x.embeds) and x.embeds[0].footer and x.embeds[0].footer.text and x.embeds[0].footer.text.endswith(str(m.id)) and x.author.id == self.bot.user.id), None)
+            if not star_message:
+                return
+            await star_message.delete()
+        except Exception as err:
+            print("STARBOARD ALL ERROR", err)
+
+def load_star(stars: int, total: int) -> str:
+    final = '⭐'
+    if stars >= total + 5:
+        final = '🌟'
+    if stars >= total + 9:
+        final = '💫'
+    if stars >= total + 13:
+        final = '✨'
+    return final
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Listeners(bot))
