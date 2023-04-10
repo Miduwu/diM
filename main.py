@@ -50,11 +50,17 @@ class diM(commands.Bot):
             if file.endswith('.py'):
                 await bot.load_extension(f'cogs.{file[:-3]}')
 
+intents = discord.Intents.default()
+intents.presences = False
+intents.message_content = True
+intents.members = True
+intents.dm_reactions = False
+
 bot = diM(
     command_prefix=get_prefix,
     owner_ids=[664261902712438784, 930588488590581850],
     strip_after_prefix=True,
-    intents=discord.Intents.all(),
+    intents=intents,
     help_command=None,
     activity=discord.Activity(type=discord.ActivityType.listening, name="Mid ;3")
     )
