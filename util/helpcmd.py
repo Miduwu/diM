@@ -102,7 +102,7 @@ class HelpView(discord.ui.View):
 
 async def send_help(ctx: commands.Context, slash):
     emb = discord.Embed(description=f"Welcome to **{ctx.bot.user.name}**'s help.\nI'm a super discord bot and i will help you with some tasks in this server!", colour=3447003)
-    emb.add_field(name='Useful links', value=f'[Invite]({os.getenv("INVITE")}) | [Server]({os.getenv("SERVER")})')
+    emb.add_field(name='Useful links', value=f'[Invite]({os.getenv("INVITE")}) | [Server]({os.getenv("SERVER")}) | [ToS & Privacy Policy](https://gist.github.com/Miduwu/c09201ee83edb410fab5f045463a3b50)')
     emb.set_author(name=f'{ctx.author.name}#{ctx.author.discriminator}', icon_url=ctx.author.display_avatar)
     emb.set_thumbnail(url=ctx.bot.user.display_avatar)
     emb.set_footer(text=f'Use {ctx.clean_prefix}help <command> to get more information about a command. :)', icon_url=ctx.bot.user.display_avatar)
