@@ -14,8 +14,8 @@ mongodb = mongo.MongoDB(os.getenv('MONGO'))
 
 async def get_prefix(client, message: discord.Message):
     if not message.guild:
-        return '$'
-    return await mongodb.get(table='guilds', id=message.guild.id, path='prefix') or '$'
+        return 't!'
+    return await mongodb.get(table='guilds', id=message.guild.id, path='prefix') or 't!'
 
 timeouts = execs.Timeouts(db)
 
@@ -62,7 +62,7 @@ bot = diM(
     strip_after_prefix=True,
     intents=intents,
     help_command=None,
-    activity=discord.Activity(type=discord.ActivityType.listening, name="Mid ;3")
+    activity=discord.Activity(type=discord.ActivityType.listening, name="new update!")
     )
 
 util = coreback.Util(bot)
