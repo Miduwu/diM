@@ -14,15 +14,6 @@ class Funny(commands.Cog):
     async def images(self, ctx):
         """Apply some filters in your images"""
         ...
-
-    @commands.cooldown(1, 7, commands.BucketType.member)
-    @images.command(name="pornhub")
-    @discord.app_commands.describe(text1="The first text (white one)", text2="The second text (orange one)")
-    async def phub(self, ctx: commands.Context, text1: str, text2: str):
-        """Make a pornhub logo (nothing NSFW)"""
-        await ctx.defer()
-        b = await util.download_bytes(f"https://api.alexflipnote.dev/pornhub?text={text1[:50]}&text2={text2[:50]}")
-        await ctx.send(file=discord.File(fp=b, filename="pornhub.png"))
     
     @commands.cooldown(1, 7, commands.BucketType.member)
     @images.command(name="drake")
