@@ -97,6 +97,9 @@ async def upper(d: Data, u):
 async def user_name(d: Data, u):
     return d.code.replace(d.func["id"], d.author.name)
 
+async def user_mention(d: Data, u):
+    return d.code.replace(d.func["id"], d.author.mention)
+
 async def user_tag(d: Data, u):
     return d.code.replace(d.func["id"], f'{d.author.name}#{d.author.discriminator}')
 
@@ -135,6 +138,7 @@ FUNCS = {
     "@lower": lower,
     "@upper": upper,
     "@user.name": user_name,
+    "@user.mention": user_mention,
     "@user.tag": user_tag,
     "@user.id": user_id,
     "@user.avatar": user_avatar,
