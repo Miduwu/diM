@@ -16,7 +16,7 @@ async def get_prefix(client, message: discord.Message):
     if not message.guild:
         return 't!'
     p = await mongodb.get(table='guilds', id=message.guild.id, path='prefix') or 't!'
-    return commands.when_mentioned_or(p)
+    return commands.when_mentioned_or(p)(client, message)
 
 timeouts = execs.Timeouts(db)
 
