@@ -15,7 +15,8 @@ mongodb = mongo.MongoDB(os.getenv('MONGO'))
 async def get_prefix(client, message: discord.Message):
     if not message.guild:
         return 't!'
-    return await mongodb.get(table='guilds', id=message.guild.id, path='prefix') or 't!'
+    p = await mongodb.get(table='guilds', id=message.guild.id, path='prefix') or 't!'
+    return commands.when_mentioned_or(p)
 
 timeouts = execs.Timeouts(db)
 
