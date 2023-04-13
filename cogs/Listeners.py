@@ -3,8 +3,7 @@ from main import util, interpreter, mongodb as db, timeouts
 from discord.ext import commands
 from util.coreback import sync
 from util.views import Ticket
-import discord
-import re
+import discord, re, sys
 
 URL_REGEXP = "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
 
@@ -252,6 +251,14 @@ class Listeners(commands.Cog):
         channel = self.bot.get_channel(812549187388178486) or await self.bot.fetch_channel(812549187388178486)
         t = f"**New server!** <:blobthump:1011458144947408958>\n\n> **Name:** {guild.name}\n> **Members:** {guild.member_count}\n> **Owner:** {f'{guild.owner.name}#{guild.owner.discriminator}' if guild.owner else 'Unknown'}\n\nNow i am in **{len(self.bot.guilds)}** servers!"
         await channel.send(t)
+    
+    @commands.Cog.listener()
+    async def on_error(self, event, *args, **kwargs):
+        error_channel_id = 812549187388178486
+        error_channel = self.bot.get_channel(error_channel_id)
+        error_type, error, traceback = sys.exc_info()
+        error_message = f"Error in **{event}**:\n{error_type.__name__} - {error}"
+        await error_channel.send(error_message)
 
 def load_star(stars: int, total: int) -> str:
     final = '⭐'
