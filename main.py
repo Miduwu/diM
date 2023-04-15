@@ -61,6 +61,7 @@ bot = diM(
     command_prefix=get_prefix,
     owner_ids=[664261902712438784, 930588488590581850],
     case_insensitive=True,
+    allowed_mentions=discord.AllowedMentions(everyone=False, roles=True, users=True),
     strip_after_prefix=True,
     intents=intents,
     help_command=None,
@@ -72,10 +73,14 @@ util = coreback.Util(bot)
 interpreter = inter.Interpreter(util)
 
 @bot.check
-async def guild_only(ctx: commands.Context):
+async def global_check(ctx: commands.Context):
+    if ctx.command.__original_kwargs__.get("disabled", None):
+        await util.throw_error(ctx, text="This command is under maintenance!")
+        return False
     if ctx.guild is None:
         await util.throw_error(ctx, text=f'This command is only for servers!')
-    return ctx.guild != None
+        return False
+    return True
 
 async def main():
     async with bot:

@@ -456,32 +456,33 @@ class Util(commands.Cog):
         v.message = await ctx.send(embed=emb, view=v)
     
     @commands.cooldown(1, 5, commands.BucketType.member)
-    @commands.hybrid_command(name="api", aliases=["apy"])
+    @commands.hybrid_command(name="api", aliases=["apy"], disabled=True)
     @discord.app_commands.describe(query="The route to search in the official api (APY)")
     async def apy(self, ctx: commands.Context, query: str):
-        """Search a route in the bot API (APY)"""
+        """Search something in the APY documentation"""
         res: dict | None = await util.get(url=f"{self.api_domain}/json/route", params={"query": query})
         if not res or not res.get("data", None):
             return await util.throw_error(ctx, text='I was unable to find something related to that')
+        res: dict = res.get("data")
         await ctx.defer()
-        emb = discord.Embed(colour=3447003, title=res["data"]["path"], url=f"https://api.munlai.fun{res['data']['path']}", description=res["data"]["explan"])
+        emb = discord.Embed(colour=3447003)
         emb.set_author(name="APY (Stable)", icon_url="https://i.imgur.com/onn7Vbn.png")
         emb.set_footer(text=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
         emb.set_thumbnail(url="https://i.imgur.com/onn7Vbn.png")
-        query = []
-        if res["data"].get("query", None):
-            if len(res["data"]["query"].get("required", [])):
-                for item in res["data"]["query"]["required"]:
-                    name, mytype, explan = item.split(";")
-                    query.append(f"**`<{name}>`: {mytype}** {explan}")
-            if len(res["data"]["query"].get("optional", [])):
-                for item in res["data"]["query"]["optional"]:
-                    name, mytype, explan = item.split(";")
-                    query.append(f"**`[{name}]`: Optional[{mytype}]** {explan}")
-        if len(query):
-            emb.add_field(name="Query parameters:", value="\n".join(query))
-        emb.add_field(name="Returns:", value=f"```{res['data'].get('returns', 'Uknown (Report it)')}```", inline=False)
-        await ctx.send(embed=emb)
+        if res.get("title", None):
+            emb.title = res.get("title")
+            emb.description = "API Schema"
+            fixed = [f"**{x[0]}: `{x[1].get('type', 'any')}`**" for x in res.items()]
+            emb.add_field(name="Properties", value="\n".join(fixed))
+            await ctx.send(embed=emb)
+        else:
+            method = res[res.keys()[0]]
+            res = res.get(method, None)
+            params = [f"**{x['name']}: `{x['schema']['type']}{'?' if not x['required'] else '*'}`**. ({x['in'][0].upper()}.) {x['description']}" for x in res.get("parameters", [])]
+            params = "\n".join(params) if len(params) else ''
+            emb.description = f'{res.get("description")}\n{params}'
+            emb.add_field(name="Returns", value=f'{res["responses"]["200"]}')
+            await ctx.send(embed=emb)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Util(bot))
