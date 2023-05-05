@@ -463,7 +463,7 @@ class Util(commands.Cog):
         res: dict | None = await util.get(url=f"https://api.exchangerate-api.com/v4/latest/{source_code}")
         if not res or not res.get("rates", None):
             return await util.throw_error(ctx, text="I was unable to convert that money code")
-        key = res.get("rates").get(target_code, None)
+        key = res.get("rates").get(target_code.upper(), None)
         if not key:
             return await util.throw_error(ctx, text="That money code doesn't exist")
         amount = key * amount
