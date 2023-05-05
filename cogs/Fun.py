@@ -8,7 +8,7 @@ openai.api_key = os.getenv("openaikey")
 class Funny(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.api_domain = "https://apy.cyberghxst.ga"
+        self.api_domain = "https://api.munlai.me"
     
     @commands.hybrid_group(name="image")
     async def images(self, ctx):
@@ -172,7 +172,7 @@ class Funny(commands.Cog):
             user2 = user1
             user1 = ctx.author
         r = random.randint(1, 101)
-        embed = discord.Embed()
+        embed = discord.Embed(colour=3447003)
         embed.description = f"**{user1.name}** & **{user2.name}** are **{r}%** compatible! :heart:"
         embed.set_image(url=f"{self.api_domain}/image/ship?image={user1.display_avatar}&image2={user2.display_avatar}&type={1 if r > 50 else 2}")
         await ctx.send(embed=embed)

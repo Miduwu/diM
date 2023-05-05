@@ -14,7 +14,7 @@ import pydash as _
 class Util(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.api_domain = "https://apy.cyberghxst.ga/"
+        self.api_domain = "https://api.munlai.me"
 
     @commands.hybrid_group(name="user")
     async def user(self, ctx: commands.Context):
@@ -454,6 +454,20 @@ class Util(commands.Cog):
             v.embed.add_field(name='Summary:', value=item['summary'], inline=False)
         v.update_item = update
         v.message = await ctx.send(embed=emb, view=v)
+    
+    @commands.cooldown(1, 5, commands.BucketType.member)
+    @commands.hybrid_command(name="rate")
+    @discord.app_commands.describe(source_code="The currency code, ex: USD", target_code="The currency code to convert, ex: USD", amount="The amount of this currency to conver, ex: 2")
+    async def rate(self, ctx: commands.Context, source_code: str, target_code: str, amount: int):
+        """Convert a currency to another"""
+        res: dict | None = await util.get(url=f"https://api.exchangerate-api.com/v4/latest/{source_code}")
+        if not res or res.get("rates", None):
+            return await util.throw_error(ctx, text="I was unable to convert that money code")
+        key = res.get("rates").get(target_code, None)
+        if not key:
+            return await util.throw_error(ctx, text="That money code doesn't exist")
+        amount = key * amount
+        await ctx.send(f":scales: **{source_code.upper()}** to **{target_code.upper()}**\n\n> :coin: **{source_code.upper()}:** {amount}\n> :coin: **{target_code.upper()}:** {round(amount, 6)}")
     
     @commands.cooldown(1, 5, commands.BucketType.member)
     @commands.hybrid_command(name="api", aliases=["apy"], disabled=True)
