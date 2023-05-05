@@ -466,8 +466,7 @@ class Util(commands.Cog):
         key = res.get("rates").get(target_code.upper(), None)
         if not key:
             return await util.throw_error(ctx, text="That money code doesn't exist")
-        amount = key * amount
-        await ctx.send(f":scales: **{source_code.upper()}** to **{target_code.upper()}**\n\n> :coin: **{source_code.upper()}:** {amount}\n> :coin: **{target_code.upper()}:** {round(amount, 6)}")
+        await ctx.send(f":scales: **{source_code.upper()}** to **{target_code.upper()}**\n\n> :coin: **{source_code.upper()}:** {amount}\n> :coin: **{target_code.upper()}:** {round(key * amount, 6)}")
     
     @commands.cooldown(1, 5, commands.BucketType.member)
     @commands.hybrid_command(name="api", aliases=["apy"], disabled=True)
