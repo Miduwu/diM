@@ -461,7 +461,7 @@ class Util(commands.Cog):
     async def rate(self, ctx: commands.Context, source_code: str, target_code: str, amount: int):
         """Convert a currency to another"""
         res: dict | None = await util.get(url=f"https://api.exchangerate-api.com/v4/latest/{source_code}")
-        if not res or res.get("rates", None):
+        if not res or not res.get("rates", None):
             return await util.throw_error(ctx, text="I was unable to convert that money code")
         key = res.get("rates").get(target_code, None)
         if not key:
