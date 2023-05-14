@@ -6,6 +6,9 @@ from util import coreback
 from discord.ext import commands
 from util.modules import execs, midb, mongo, interpreter as inter
 
+os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
+os.environ["JISHAKU_HIDE"] = "True"
+
 dotenv.load_dotenv()
 
 db = midb.Database(path='./database', tables=['Main', 'Users', 'Guilds', 'Timeouts'])
@@ -27,26 +30,12 @@ async def on_expires(timeout):
             user = timeouts.bot.get_user(timeout["data"]["author"]) or await timeouts.bot.fetch_user(timeout['data']['author'])
             if user:
                 await user.send(f'**There is a reminder! ⏰**\n{timeout["data"]["note"][:1950]}')
-        elif timeout['id'] == 'giveaway':
-            guild = timeouts.bot.get_guild(timeout["data"]["guild"]) or await timeouts.bot.fetch_guild(timeout["data"]["guild"])
-            channel = guild.get_channel(timeout["data"]["channel"]) or await guild.fetch_channel(timeout["data"]["channel"])
-            message = await channel.fetch_message(timeout["data"]["message"])
-            users = [user async for user in message.reactions[0].users()]
-            users.pop(users.index(timeouts.bot.user))
-            winners = util.choice(users, timeout["data"]["winners"]) if len(users) else None
-            embed = discord.Embed().from_dict(message.embeds[0].to_dict())
-            embed.title = "Giveaway ended!"
-            embed.set_footer(text="Giveaway ended.")
-            winners_parsed = ", ".join([u.mention for u in winners]) if winners else "No winner."
-            embed.description = f"🎁 **Prize:** {timeout['data']['prize']}\n\n🎉 **Hosted by:** <@{timeout['data']['host']}>\n🏆 **Winners:** {winners_parsed}"
-            await message.edit(embed=embed)
-            if winners:
-                await message.reply(content=f"🎊 **Congratulations!** to {winners_parsed}. You won: **{timeout['data']['prize']}**\n\n{message.jump_url}")
     except Exception as err:
         print("\n".join(util.load_exception(err)))
 
 class diM(commands.Bot):
     async def setup_hook(self) -> None:
+        await bot.load_extension("jishaku") # feature
         for file in os.listdir('./cogs'):
             if file.endswith('.py'):
                 await bot.load_extension(f'cogs.{file[:-3]}')

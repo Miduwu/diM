@@ -59,7 +59,7 @@ class MenuHelpSelect(discord.ui.Select):
         cogs = list(map(lambda cog: cog[0], list(self.bot.cogs.items())))
         ops = []
         for cog in cogs:
-            if cog == 'Dev' or cog == 'Listeners':
+            if cog == 'Dev' or cog == 'Listeners' or cog.title() == 'Jishaku':
                 continue
             ops.append(discord.SelectOption(label=cog, description=f'Get the {cog} commands'))
         super().__init__(placeholder="Select a module", max_values=1, min_values=1, options=ops)

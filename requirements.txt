@@ -7,3 +7,4 @@ motor
 wordcloud
 regex
 typing_extensions
+jishaku
