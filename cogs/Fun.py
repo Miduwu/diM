@@ -97,8 +97,8 @@ class Funny(commands.Cog):
         """Make a spotify card"""
         if user is None:
             user = ctx.author
-        b = await util.download_bytes(f"{self.api_domain}/image/spotify?image={user.display_avatar}&name={user.name}&artist=Tokyo&album=Moonlight")
-        await ctx.send(file=discord.File(fp=b, filename="beautiful.png"))
+        b = await util.download_bytes(f"{self.api_domain}/image/spotifycard?image={user.display_avatar}&name={user.name}&artist=Tokyo&album=Moonlight")
+        await ctx.send(file=discord.File(fp=b, filename="spotify.png"))
 
     @commands.hybrid_group(name="text")
     async def texts(self, ctx):
