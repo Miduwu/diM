@@ -1,8 +1,7 @@
-import contextlib, io, re, discord, os, aiohttp, json
+import contextlib, io, re, discord, os, discord
 from traceback import format_exception
 from discord.ext import commands
 from main import util, db, timeouts
-from typing import Optional
 
 class Dev(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:

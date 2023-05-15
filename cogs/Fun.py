@@ -1,9 +1,7 @@
 from discord.ext import commands
 from wordcloud import WordCloud
 from main import util
-import discord, io, re, random, openai, os
-
-openai.api_key = os.getenv("openaikey")
+import discord, io, re, random, os
 
 class Funny(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -80,6 +78,26 @@ class Funny(commands.Cog):
         if user is None:
             user = ctx.author
         b = await util.download_bytes(f"{self.api_domain}/image/beautiful?image={user.display_avatar}")
+        await ctx.send(file=discord.File(fp=b, filename="beautiful.png"))
+    
+    @commands.cooldown(1, 7, commands.BucketType.member)
+    @images.command(name="beautiful")
+    @discord.app_commands.describe(user="Select a user")
+    async def beautiful(self, ctx: commands.Context, user: discord.User = None):
+        """Make a communism image"""
+        if user is None:
+            user = ctx.author
+        b = await util.download_bytes(f"{self.api_domain}/image/communism?image={user.display_avatar}")
+        await ctx.send(file=discord.File(fp=b, filename="communsim.png"))
+    
+    @commands.cooldown(1, 7, commands.BucketType.member)
+    @images.command(name="spotify")
+    @discord.app_commands.describe(user="Select a user")
+    async def beautiful(self, ctx: commands.Context, user: discord.User = None):
+        """Make a image beautiful"""
+        if user is None:
+            user = ctx.author
+        b = await util.download_bytes(f"{self.api_domain}/image/spotify?image={user.display_avatar}&name={user.name}&artist=Tokyo&album=Moonlight")
         await ctx.send(file=discord.File(fp=b, filename="beautiful.png"))
 
     @commands.hybrid_group(name="text")
