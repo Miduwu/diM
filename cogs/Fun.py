@@ -81,9 +81,9 @@ class Funny(commands.Cog):
         await ctx.send(file=discord.File(fp=b, filename="beautiful.png"))
     
     @commands.cooldown(1, 7, commands.BucketType.member)
-    @images.command(name="beautiful")
+    @images.command(name="communism")
     @discord.app_commands.describe(user="Select a user")
-    async def beautiful(self, ctx: commands.Context, user: discord.User = None):
+    async def communism(self, ctx: commands.Context, user: discord.User = None):
         """Make a communism image"""
         if user is None:
             user = ctx.author
@@ -93,8 +93,8 @@ class Funny(commands.Cog):
     @commands.cooldown(1, 7, commands.BucketType.member)
     @images.command(name="spotify")
     @discord.app_commands.describe(user="Select a user")
-    async def beautiful(self, ctx: commands.Context, user: discord.User = None):
-        """Make a image beautiful"""
+    async def spotify(self, ctx: commands.Context, user: discord.User = None):
+        """Make a spotify card"""
         if user is None:
             user = ctx.author
         b = await util.download_bytes(f"{self.api_domain}/image/spotify?image={user.display_avatar}&name={user.name}&artist=Tokyo&album=Moonlight")
