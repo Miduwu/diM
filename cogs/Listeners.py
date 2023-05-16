@@ -38,7 +38,7 @@ class Listeners(commands.Cog):
         elif isinstance(error, commands.BotMissingPermissions):
             return await util.throw_error(ctx, text=f"Sadly i can't execute that command, i need the following permissions:\n{', '.join(list(map(lambda s: f'**`{s}`**', error.missing_permissions)))}")
         elif isinstance(error, commands.BadArgument):
-            return await util.throw_error(ctx, text=f"Invalid argument type provided")
+            return await util.throw_error(ctx, text=str(error) or "Invalid argument type provided")
         elif isinstance(error, commands.ChannelNotReadable):
             return await util.throw_error(ctx, text=f"I can't read messages in that channel, i don't have access to it")
         else:

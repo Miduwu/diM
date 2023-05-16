@@ -1,14 +1,12 @@
 import discord
 import re
 from calendar import month
-from html import unescape
 from discord.ext import commands
 from main import util, timeouts
 from datetime import datetime
 from deep_translator import GoogleTranslator
 from typing import Optional, Literal
 from util.views import Paginator
-from urllib.parse import quote_plus
 import pydash as _
 
 class Util(commands.Cog):
@@ -403,58 +401,6 @@ class Util(commands.Cog):
         v.message = await ctx.send(embed=emb, view=v)
         v.update_item = update
     
-    @commands.cooldown(1, 7, commands.BucketType.member)
-    @search.command(name='python', aliases=['py'])
-    @discord.app_commands.describe(query='Something to search')
-    async def realpython(self, ctx: commands.Context, *, query: str):
-        '''Search something in real python website'''
-        res = await util.get(url='https://realpython.com/search/api/v1/', params={"q": query, "limit": 15})
-        if not res or not _.get(res, 'results') or not len(res['results']):
-            return await util.throw_error(ctx, text='I was unable to find some article related to that')
-        await ctx.defer()
-        articles = _.chunk(res["results"], 3)
-        emb = discord.Embed(colour=3447003, title='Search results - Real Python', url=f'https://realpython.com/search?q={quote_plus(query)}', description='Here you go')
-        emb.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar)
-        emb.set_thumbnail(url='https://cdn.discordapp.com/attachments/852617860404609044/1054972118611279892/pythontocompress_1.png')
-        emb.set_footer(text=f'Page: 1/{len(articles)}', icon_url=self.bot.user.display_avatar)
-        for article in articles[0]:
-            emb.add_field(name=util.cut(unescape(article["title"]), 225), value=f'https://realpython.com{article["url"]}', inline=False)
-        
-        v = Paginator(data=articles, ctx=ctx, embed=emb)
-        def update(item):
-            v.embed.clear_fields()
-            v.embed.set_footer(text=f'Page: {v.page + 1}/{len(articles)}', icon_url=self.bot.user.display_avatar)
-            for article in item:
-                v.embed.add_field(name=util.cut(unescape(article["title"]), 225), value=f'https://realpython.com{article["url"]}', inline=False)
-        v.update_item = update
-        v.message = await ctx.send(embed=emb, view=v)
-    
-    @commands.cooldown(1, 7, commands.BucketType.member)
-    @search.command(name='javascript', aliases=['js'])
-    @discord.app_commands.describe(query='Something to search')
-    async def mozilla(self, ctx: commands.Context, query: str, idiom: Literal['en-us', 'de', 'es', 'fr', 'ja', 'ko', 'pl', 'pt-br', 'ru', 'zh-cn', 'zh-tw'] = 'en-us'):
-        '''Search something in mozilla'''
-        res = await util.get(url='https://developer.mozilla.org/api/v1/search', params={"q": query, "locale": idiom})
-        if not res or not _.get(res, 'documents') or not len(res['documents']):
-            return await util.throw_error(ctx, text='I was unable to find something related to that')
-        await ctx.defer()
-        docs = _.get(res, 'documents')
-        emb = discord.Embed(colour=3447003, title=docs[0]['title'], url=f'https://developer.mozilla.org{docs[0]["mdn_url"]}')
-        emb.set_thumbnail(url='https://cdn.discordapp.com/attachments/778296113123688498/958975232952127488/mozilla.png')
-        emb.add_field(name='Locale:', value=docs[0]['locale'])
-        emb.add_field(name='Score:', value=str(_.get(docs[0], 'score') or 0))
-        emb.add_field(name='Summary:', value=docs[0]['summary'], inline=False)
-        emb.set_footer(text=f'Page: 1/{len(docs)}', icon_url=self.bot.user.display_avatar)
-        v = Paginator(data=docs, ctx=ctx, embed=emb)
-        def update(item):
-            v.embed.clear_fields()
-            v.embed.set_footer(text=f'Page: {v.page + 1}/{len(docs)}', icon_url=self.bot.user.display_avatar)
-            v.embed.add_field(name='Locale:', value=item['locale'])
-            v.embed.add_field(name='Score:', value=str(_.get(item, 'score') or 0))
-            v.embed.add_field(name='Summary:', value=item['summary'], inline=False)
-        v.update_item = update
-        v.message = await ctx.send(embed=emb, view=v)
-    
     @commands.cooldown(1, 5, commands.BucketType.member)
     @commands.hybrid_command(name="rate")
     @discord.app_commands.describe(source_code="The currency code, ex: USD", target_code="The currency code to convert, ex: USD", amount="The amount of this currency to conver, ex: 2")
@@ -469,7 +415,7 @@ class Util(commands.Cog):
         await ctx.send(f":scales: **{source_code.upper()}** to **{target_code.upper()}**\n\n> :coin: **{source_code.upper()}:** {amount}\n> :coin: **{target_code.upper()}:** {round(key * amount, 6)}")
     
     @commands.cooldown(1, 5, commands.BucketType.member)
-    @commands.hybrid_command(name="api", aliases=["apy"], disabled=True)
+    @commands.hybrid_command(name="api", aliases=["apy"], disabled=True, hidden=True)
     @discord.app_commands.describe(query="The route to search in the official api (APY)")
     async def apy(self, ctx: commands.Context, query: str):
         """Search something in the APY documentation"""

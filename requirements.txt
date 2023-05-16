@@ -8,3 +8,4 @@ wordcloud
 regex
 typing_extensions
 jishaku
+EdgeGPT
