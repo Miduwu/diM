@@ -7,6 +7,7 @@ from discord.ext import commands
 from util.modules import execs, midb, mongo, interpreter as inter
 
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
+os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
 os.environ["JISHAKU_HIDE"] = "True"
 
 dotenv.load_dotenv()
