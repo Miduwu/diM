@@ -374,8 +374,8 @@ class Developers(commands.Cog):
         run_output = await self.get_run_output(ctx)
         await ctx.send(run_output)
     
-    @commands.is_owner()
-    @commands.hybrid_command(name="chat", aliases=["ai", "chatgpt", "bing"], hidden=True)
+    @commands.cooldown(1, 18, commands.BucketType.user)
+    @commands.hybrid_command(name="chat", aliases=["ai", "chatgpt", "bing"], example="t!chat Tell me a joke")
     @discord.app_commands.describe(prompt="The prompt to interact with chatgpt")
     async def chatgpt(self, ctx: commands.Context, *, prompt: str):
         """Asks something to ChatGPT (Bing)"""
