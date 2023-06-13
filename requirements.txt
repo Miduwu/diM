@@ -8,4 +8,4 @@ wordcloud
 regex
 typing_extensions
 jishaku
-EdgeGPT
+EdgeGPT==0.6.0
