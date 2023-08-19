@@ -137,7 +137,7 @@ class Tools(commands.Cog):
         button.callback = call
         v = Base(ctx=ctx).add_item(button)
         emb = discord.Embed(title=f'"{found["name"]}" source', description=f'```txt\n{found["content"][:1950]}```', colour=3447003)
-        emb.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+        emb.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar)
         v.message = await ctx.send(embed=emb, view=v)
     
     @commands.cooldown(1, 7, commands.BucketType.member)
@@ -158,7 +158,7 @@ class Tools(commands.Cog):
         func = lambda arr: "\n".join(list(map(lambda obj: f"{_.flatten_deep(_resolved_).index(obj) + 1} :: **`{obj['name']}`** [Author: {self.bot.get_user(obj['author']).name if self.bot.get_user(obj['author']) else 'Unknown'}]", arr)))
         _chunk_ = _.chunk(_resolved_, 10)
         emb = discord.Embed(colour=3447003, title=f"Similar to: {query}")
-        emb.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+        emb.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar)
         emb.description = func(_chunk_[0])
         v = Paginator(data=_chunk_, ctx=ctx, embed=emb)
         def update(item):
@@ -192,7 +192,7 @@ class Tools(commands.Cog):
         func = lambda arr: "\n".join(list(map(lambda obj: f"{_.flatten_deep(_tags_).index(obj) + 1} :: **`{obj['name']}`** [Author: {self.bot.get_user(obj['author']).name if self.bot.get_user(obj['author']) else 'Unknown'}]", arr)))
         emb = discord.Embed(colour=3447003)
         emb.description = func(_tags_[0])
-        emb.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+        emb.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar)
         v = Paginator(data=_tags_, ctx=ctx, embed=emb)
         def update(item):
             v.content = f"**[Page: {v.page + 1}/{len(_tags_)}]**"
@@ -381,7 +381,7 @@ class Tools(commands.Cog):
     async def settings(self, ctx: commands.Context):
         """Manage the settings in this server"""
         emb = discord.Embed(colour=3447003, title="Settings", description=f"Thanks for using **{ctx.bot.user.name}** tools! You can see a system by using the select menu below this.")
-        emb.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+        emb.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar)
         emb.set_footer(text=f"{self.bot.user.name} settings", icon_url=self.bot.user.display_avatar)
         emb.set_thumbnail(url=self.bot.user.display_avatar)
         try:
@@ -529,7 +529,7 @@ class Tools(commands.Cog):
             return await util.throw_error(ctx, text="There aren't messages yet to show")
         t = []
         for message in reversed(messages):
-            t.append(f"\n{message.author.name}#{message.author.discriminator} [{message.created_at}]:\n{message.content}")
+            t.append(f"\n@{message.author.name} [{message.created_at}]:\n{message.content}")
         await ctx.send(file=discord.File(io.StringIO("\n".join(t)), "transcript.txt"))
     
     @tickets.command(name="archive")

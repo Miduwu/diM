@@ -89,7 +89,7 @@ class Listeners(commands.Cog):
                 if not data or not data.get("enabled", None):
                     return await i.response.send_message("Oops! It seems that this server doesn't have the ticket system enabled! <:bloboutage:1011458109060952154>", ephemeral=True)
                 try:
-                    thread = await i.channel.create_thread(name=f"T - {i.user.name}#{i.user.discriminator}")
+                    thread = await i.channel.create_thread(name=f"T - @{i.user.name}")
                     t = f"**Transcript:** </tickets transcript:{util.get_slash('tickets').id}>\n**Archive:** </tickets archive:{util.get_slash('tickets').id}>"
                     await thread.send(content=f"Hi {i.user.mention}, welcome to your private ticket! <:blobheart:1011458084239056977>\n\nPlease explain be patient to get **support**, anyways you can mention people **(@wumpus)** to invite them to this channel!\n\n{t}\n\n**Support role:** {data.get('role', 'No support role set.')}", allowed_mentions=discord.AllowedMentions(users=True, roles=True))
                     await i.response.send_message(content=f"Your ticket has been created in: {thread.mention} <:blobheart:1011458084239056977>", ephemeral=True)
@@ -179,7 +179,7 @@ class Listeners(commands.Cog):
                 if not image and not content:
                     return
                 emb = discord.Embed(description=content or None, color=16776960)
-                emb.set_author(name=f"{m.author.name}#{m.author.discriminator}", icon_url=m.author.display_avatar)
+                emb.set_author(name=f"@{m.author.name}", icon_url=m.author.display_avatar)
                 emb.set_image(url=image)
                 emb.set_footer(text=f"{self.bot.user.name} Starboard | {m.id}", icon_url=self.bot.user.display_avatar)
                 v = discord.ui.View().add_item(discord.ui.Button(style=discord.ButtonStyle.link, label="Jump to message", url=m.jump_url))
@@ -243,13 +243,13 @@ class Listeners(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
         channel = self.bot.get_channel(812549187388178486) or await self.bot.fetch_channel(812549187388178486)
-        t = f"**New server!** <:photoblob:1011458149653426226>\n\n> **Name:** {guild.name}\n> **Members:** {guild.member_count}\n> **Owner:** {f'{guild.owner.name}#{guild.owner.discriminator}' if guild.owner else 'Unknown'}\n\nNow i am in **{len(self.bot.guilds)}** servers!"
+        t = f"**New server!** <:photoblob:1011458149653426226>\n\n> **Name:** {guild.name}\n> **Members:** {guild.member_count}\n> **Owner:** {f'{guild.owner.name}' if guild.owner else 'Unknown'}\n\nNow i am in **{len(self.bot.guilds)}** servers!"
         await channel.send(t)
     
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):
         channel = self.bot.get_channel(812549187388178486) or await self.bot.fetch_channel(812549187388178486)
-        t = f"**New server!** <:blobthump:1011458144947408958>\n\n> **Name:** {guild.name}\n> **Members:** {guild.member_count}\n> **Owner:** {f'{guild.owner.name}#{guild.owner.discriminator}' if guild.owner else 'Unknown'}\n\nNow i am in **{len(self.bot.guilds)}** servers!"
+        t = f"**New server!** <:blobthump:1011458144947408958>\n\n> **Name:** {guild.name}\n> **Members:** {guild.member_count}\n> **Owner:** {f'{guild.owner.name}' if guild.owner else 'Unknown'}\n\nNow i am in **{len(self.bot.guilds)}** servers!"
         await channel.send(t)
     
     @commands.Cog.listener()

@@ -44,7 +44,7 @@ class Funny(commands.Cog):
     @images.command(name="deepfry")
     @discord.app_commands.describe(user="Select a user")
     async def deepfry(self, ctx: commands.Context, user: discord.User = None):
-        """Make a image deepfry""" # Despues vambiale si queres, soy una mierda para las descripciones
+        """Make a image deepfry"""
         if user is None: 
             user = ctx.author
         b = await util.download_bytes(f"{self.api_domain}/image/deepfry?image={user.display_avatar}")

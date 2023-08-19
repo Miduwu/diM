@@ -30,7 +30,7 @@ async def on_expires(timeout):
         if timeout['id'] == 'reminder':
             user = timeouts.bot.get_user(timeout["data"]["author"]) or await timeouts.bot.fetch_user(timeout['data']['author'])
             if user:
-                await user.send(f'**There is a reminder! ⏰**\n{timeout["data"]["note"][:1950]}')
+                await user.send(f'**Here is a reminder! ⏰**\n{timeout["data"]["note"][:1950]}')
     except Exception as err:
         print("\n".join(util.load_exception(err)))
 

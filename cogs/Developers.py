@@ -3,7 +3,6 @@ from discord.utils import escape_mentions
 from discord.ext import commands, tasks
 from dataclasses import dataclass
 from main import util, mongodb, db, timeouts
-from util.modules.ai import BingChat, ConversationStyle
 from traceback import format_exception
 from html import unescape
 from util.views import Paginator
@@ -373,25 +372,6 @@ class Developers(commands.Cog):
             return
         run_output = await self.get_run_output(ctx)
         await ctx.send(run_output)
-    
-    @commands.cooldown(1, 18, commands.BucketType.user)
-    @commands.hybrid_command(name="chat", aliases=["ai", "chatgpt", "bing"], example="t!chat Tell me a joke")
-    @discord.app_commands.describe(prompt="The prompt to interact with chatgpt")
-    async def chatgpt(self, ctx: commands.Context, *, prompt: str):
-        """Asks something to ChatGPT (Bing)"""
-        if ctx.interaction:
-            await ctx.defer()
-        else:
-            await ctx.message.add_reaction("⏰")
-        async with BingChat("util/cookies.json") as bot:
-            res = await bot.ask(prompt=prompt, conversation_style=ConversationStyle.precise)
-            emb = discord.Embed(colour=3447003)
-            emb.set_author(name="Artificial Intelligence")
-            emb.description = res[:3999]
-            emb.set_footer(text=self.bot.user.name, icon_url=self.bot.user.display_avatar)
-            await ctx.send(embed=emb)
-            if ctx.message:
-                await ctx.message.clear_reactions()
     
     @commands.hybrid_group(name="mid", hidden=True)
     async def mid(self, ctx):

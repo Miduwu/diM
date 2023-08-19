@@ -29,7 +29,7 @@ class Util(commands.Cog):
             member = ctx.author
         user = member._user
         embed = discord.Embed(colour=3447003)
-        embed.set_author(name=f"{user.name}#{user.discriminator}", icon_url=user.display_avatar)
+        embed.set_author(name=user.name, icon_url=user.display_avatar)
         embed.set_image(url=str(user.display_avatar).replace(".webp", ".png"))
         await ctx.send(embed=embed)
     
@@ -43,9 +43,9 @@ class Util(commands.Cog):
             member = ctx.author
         user = member._user
         emb = discord.Embed(colour=3447003)
-        emb.set_author(name=f"{user.name}#{user.discriminator}", icon_url=user.display_avatar)
+        emb.set_author(name=user.name, icon_url=user.display_avatar)
         emb.set_thumbnail(url=user.display_avatar)
-        emb.description = f"**¬ Tag:** {user.name}#{user.discriminator}\n**¬ ID:** `{user.id}`\n**¬ Highest role:** {member.top_role.mention if member else '~~None~~'}\n**¬ Created:** <t:{round(user.created_at.timestamp())}:D>\n**¬ Joined:** <t:{round(member.joined_at.timestamp())}:D>\n\n**¬ Roles [{len(member.roles) if member else '~~0~~'}]:**\n{', '.join(list(map(lambda r: r.mention, member.roles))) if member else '~~None~~'}"
+        emb.description = f"**¬ Tag:** @{user.name}\n**¬ ID:** `{user.id}`\n**¬ Highest role:** {member.top_role.mention if member else '~~None~~'}\n**¬ Created:** <t:{round(user.created_at.timestamp())}:D>\n**¬ Joined:** <t:{round(member.joined_at.timestamp())}:D>\n\n**¬ Roles [{len(member.roles) if member else '~~0~~'}]:**\n{', '.join(list(map(lambda r: r.mention, member.roles))) if member else '~~None~~'}"
         await ctx.send(embed=emb)
     
     @commands.hybrid_group(name="server")
@@ -74,7 +74,7 @@ class Util(commands.Cog):
         emb.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)
         emb.description = f"**¬ Name:** {role.name}\n**¬ ID:** `{role.id}`\n**¬ Created:** <t:{round(role.created_at.timestamp())}:D>\n**¬ Hex:** {role.color}\n**¬ Position:** {role.position}"
         emb.set_thumbnail(url=role.display_icon)
-        emb.set_footer(text=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+        emb.set_footer(text=ctx.author.name, icon_url=ctx.author.display_avatar)
         await ctx.send(embed=emb)
     
     @commands.cooldown(1, 5, commands.BucketType.member)
@@ -88,7 +88,7 @@ class Util(commands.Cog):
         emb = discord.Embed(colour=3447003)
         emb.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)
         emb.description = f"**¬ Name:** {channel.name}\n**¬ ID:** `{channel.id}`\n**¬ Category:** {channel.category.name if channel.category else 'None'}\n**¬ Type:** {channel.type}\n**¬ Position:** {channel.position}\n**¬ Created:** <t:{round(channel.created_at.timestamp())}:D>"
-        emb.set_footer(text=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+        emb.set_footer(text=ctx.author.name, icon_url=ctx.author.display_avatar)
         emb.set_thumbnail(url=ctx.guild.icon or self.bot.user.display_avatar)
         await ctx.send(embed=emb)
     
@@ -271,7 +271,7 @@ class Util(commands.Cog):
         try:
             if not message.embeds and not len(message.embeds) and message.content:
                 emb = discord.Embed(color=3447003, description=message.content[:4095])
-                emb.set_author(name=f"{message.author.name}#{message.author.discriminator}")
+                emb.set_author(name=message.author.name)
                 await ctx.send(embed=emb, file=at if at else None)
             else:
                 await ctx.send(content=message.content, embeds=message.embeds, file=at if at else None)
@@ -306,7 +306,7 @@ class Util(commands.Cog):
             return await util.throw_error(ctx, text="I was unable to fetch that color")
         await ctx.defer()
         emb = discord.Embed(title=r["name"], color=r["int"])
-        emb.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+        emb.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar)
         emb.set_image(url=r["images"]["square"])
         emb.add_field(name="HEX:", value=r["hex"]["string"])
         emb.add_field(name="RGB:", value=r["rgb"]["string"])
@@ -331,7 +331,7 @@ class Util(commands.Cog):
         await ctx.defer()
         embed = discord.Embed(colour=3447003, title=res["list"][0]["word"])
         embed.description = res["list"][0]["definition"]
-        embed.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+        embed.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar)
         embed.add_field(name="Example:", value=util.cut(res["list"][0]["example"], 1020))
         embed.set_footer(text=f'👍: {_.get(res, "list[0].thumbs_up") or 0} | 👎: {_.get(res, "list[0].thumbs_down") or 0} | Page: 1/{len(res["list"])}')
     
@@ -426,7 +426,7 @@ class Util(commands.Cog):
         await ctx.defer()
         emb = discord.Embed(colour=3447003)
         emb.set_author(name="APY (Stable)", icon_url="https://i.imgur.com/onn7Vbn.png")
-        emb.set_footer(text=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+        emb.set_footer(text=ctx.author.name, icon_url=ctx.author.display_avatar)
         emb.set_thumbnail(url="https://i.imgur.com/onn7Vbn.png")
         if res.get("title", None):
             emb.title = res.get("title")

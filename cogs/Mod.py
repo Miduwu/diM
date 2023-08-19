@@ -73,7 +73,7 @@ class Mod(commands.Cog):
         if member.is_timed_out():
             return await util.throw_error(ctx, text="That member is already in timeout lol")
         await member.timeout(datetime.timedelta(milliseconds=time), reason=reason)
-        await util.throw_fine(ctx, text=f"***{member.name}#{member.discriminator}*** was timeouted successfully!", bold=False)
+        await util.throw_fine(ctx, text=f"***{member.name}*** was timeouted successfully!", bold=False)
     
     @commands.cooldown(1, 4, commands.BucketType.member)
     @commands.bot_has_guild_permissions(moderate_members=True)
@@ -85,7 +85,7 @@ class Mod(commands.Cog):
         if not member.is_timed_out():
             return await util.throw_error(ctx, text="That member is not in timeout")
         await member.timeout(None)
-        await util.throw_fine(ctx, text=f"***{member.name}#{member.discriminator}*** was untimeouted successfully!", bold=False)
+        await util.throw_fine(ctx, text=f"***{member.name}*** was untimeouted successfully!", bold=False)
     
     @commands.cooldown(1, 8, commands.BucketType.member)
     @commands.bot_has_guild_permissions(manage_messages=True)
@@ -131,7 +131,7 @@ class Mod(commands.Cog):
             return await util.throw_error(ctx, text="This user has the same or higher role than mine")
         try:
             await member.kick(reason=reason)
-            await util.throw_fine(ctx, text=f"***{member.name}#{member.discriminator}*** was kicked successfully!", bold=False)
+            await util.throw_fine(ctx, text=f"***{member.name}*** was kicked successfully!", bold=False)
         except:
             await util.throw_error(ctx, text="I was unable to kick that member")
     
@@ -156,7 +156,7 @@ class Mod(commands.Cog):
             return await util.throw_error(ctx, text="This user has the same or higher role than mine")
         try:
             await member.ban(reason=reason, delete_message_days=0 if not delete_messages else 7)
-            await util.throw_fine(ctx, text=f"***{member._user.name}#{member.discriminator}*** was banned successfully!", bold=False)
+            await util.throw_fine(ctx, text=f"***{member._user.name}*** was banned successfully!", bold=False)
         except:
             await util.throw_error(ctx, text="I was unable to ban that member")
 
@@ -173,7 +173,7 @@ class Mod(commands.Cog):
             return await util.throw_error(ctx, text="That user isn't banned")
         try:
             await ctx.guild.unban(user, reason=reason)
-            await util.throw_fine(ctx, text=f"***{user.name}#{user.discriminator}*** was unbanned successfully!", bold=False)
+            await util.throw_fine(ctx, text=f"***{user.name}*** was unbanned successfully!", bold=False)
         except:
             await util.throw_error(ctx, text="I was unable to unban that user")
     
@@ -184,13 +184,13 @@ class Mod(commands.Cog):
     async def poll(self, ctx: commands.Context, *, text: str):
         """Make a poll"""
         ops = text.split("|")
-        title, question, ops = f"📫 New poll started by **{ctx.author.name}#{ctx.author.discriminator}**", ops[0], ops[1:] if len(ops) > 1 else []
+        title, question, ops = f"📫 New poll started by **@{ctx.author.name}**", ops[0], ops[1:] if len(ops) > 1 else []
         ops = [x.strip() for x in ops]
         if ops and len(ops) > 15:
             return await util.throw_error(ctx, text="You can't add more than 15 options")
         if not len(ops):
             emb = discord.Embed(color=3447003, description=f"{title}\n```fix\n{question[:300]}```")
-            emb.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+            emb.set_author(name=f"@{ctx.author.name}", icon_url=ctx.author.display_avatar)
             m = await ctx.channel.send(embed=emb)
             await m.add_reaction("tokyo_like:964965007647445012")
             await m.add_reaction("tokyo_dislike:964965207485075506")
@@ -206,7 +206,7 @@ class Mod(commands.Cog):
                 arr.append(f"{ALPHABET[index]}:: {item[:100]}")
             arr = "\n".join(arr)
             emb = discord.Embed(color=3447003, description=f"```fix\n{question[:300]}```\n{arr}")
-            emb.set_author(name=f"{ctx.author.name}#{ctx.author.discriminator}", icon_url=ctx.author.display_avatar)
+            emb.set_author(name=f"@{ctx.author.name}", icon_url=ctx.author.display_avatar)
             m = await ctx.channel.send(content=title, embed=emb)
             for index, item in enumerate(ops):
                 await m.add_reaction(ALPHABET[index])
