@@ -1,9 +1,12 @@
 import asyncio
 import discord
 import os
+import dotenv
 from util import coreback
 from discord.ext import commands
 from util.modules import execs, midb, mongo, interpreter as inter
+
+dotenv.load_dotenv()
 
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
