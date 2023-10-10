@@ -496,12 +496,12 @@ class Developers(commands.Cog):
         else:
             await ctx.message.add_reaction("⏰")
         
-        res = await util.get(url="https://penguai.esports-ac3.workers.dev/chatbot", params={"message", prompt[:2000]})
+        res = await util.get(url="https://chatgpt4.realmapi.workers.dev/chatbot", params={"message", prompt[:2000]})
         if not res:
             return await util.throw_error(ctx, text='I was unable to pass that question')
         emb = discord.Embed(colour=3447003)
         emb.set_author(name="Artificial Intelligence")
-        emb.description = res["response"][:3000]
+        emb.description = res["response"]["response"][:3000]
         emb.set_footer(text=self.bot.user.name, icon_url=self.bot.user.display_avatar)
         await ctx.send(embed=emb)
         if ctx.message:
