@@ -50,15 +50,15 @@ class Funny(commands.Cog):
         b = await util.download_bytes(f"{self.api_domain}/image/deepfry?image={user.display_avatar}")
         await ctx.send(file=discord.File(fp=b, filename="deepfry.png"))
 
-    @commands.cooldown(1, 7, commands.BucketType.member)
-    @images.command(name="target")
-    @discord.app_commands.describe(user="Select a user")
-    async def target(self, ctx: commands.Context, user: discord.User = None):
-        """Make a image target"""
-        if user is None:
-            user = ctx.author
-        b = await util.download_bytes(f"{self.api_domain}/image/target?image={user.display_avatar}")
-        await ctx.send(file=discord.File(fp=b, filename="target.png"))
+    #@commands.cooldown(1, 7, commands.BucketType.member)
+    #@images.command(name="target")
+    #@discord.app_commands.describe(user="Select a user")
+    #async def target(self, ctx: commands.Context, user: discord.User = None):
+    #    """Make a image target"""
+    #    if user is None:
+    #        user = ctx.author
+    #    b = await util.download_bytes(f"{self.api_domain}/image/target?image={user.display_avatar}")
+    #    await ctx.send(file=discord.File(fp=b, filename="target.png"))
 
     @commands.cooldown(1, 7, commands.BucketType.member)
     @images.command(name="thisis")
@@ -87,7 +87,7 @@ class Funny(commands.Cog):
         """Make a communism image"""
         if user is None:
             user = ctx.author
-        b = await util.download_bytes(f"{self.api_domain}/image/communism?image={user.display_avatar}")
+        b = await util.download_bytes(f"{self.api_domain}/image/communist?image={user.display_avatar}")
         await ctx.send(file=discord.File(fp=b, filename="communsim.png"))
     
     @commands.cooldown(1, 7, commands.BucketType.member)
