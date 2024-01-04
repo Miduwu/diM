@@ -404,7 +404,7 @@ class Util(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.member)
     @commands.hybrid_command(name="rate")
     @discord.app_commands.describe(source_code="The currency code, ex: USD", target_code="The currency code to convert, ex: USD", amount="The amount of this currency to conver, ex: 2")
-    async def rate(self, ctx: commands.Context, source_code: str, target_code: str, amount: int | float):
+    async def rate(self, ctx: commands.Context, source_code: str, target_code: str, amount: int):
         """Convert a currency to another"""
         res: dict | None = await util.get(url=f"https://api.exchangerate-api.com/v4/latest/{source_code}")
         if not res or not res.get("rates", None):
