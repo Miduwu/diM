@@ -249,7 +249,7 @@ class Listeners(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):
         channel = self.bot.get_channel(812549187388178486) or await self.bot.fetch_channel(812549187388178486)
-        t = f"**New server!** <:blobthump:1011458144947408958>\n\n> **Name:** {guild.name}\n> **Members:** {guild.member_count}\n> **Owner:** {f'{guild.owner.name}' if guild.owner else 'Unknown'}\n\nNow i am in **{len(self.bot.guilds)}** servers!"
+        t = f"**I left a server!** <:blobthump:1011458144947408958>\n\n> **Name:** {guild.name}\n> **Members:** {guild.member_count}\n> **Owner:** {f'{guild.owner.name}' if guild.owner else 'Unknown'}\n\nNow i am in **{len(self.bot.guilds)}** servers!"
         await channel.send(t)
     
     @commands.Cog.listener()

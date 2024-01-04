@@ -404,7 +404,7 @@ class Util(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.member)
     @commands.hybrid_command(name="rate")
     @discord.app_commands.describe(source_code="The currency code, ex: USD", target_code="The currency code to convert, ex: USD", amount="The amount of this currency to conver, ex: 2")
-    async def rate(self, ctx: commands.Context, source_code: str, target_code: str, amount: int):
+    async def rate(self, ctx: commands.Context, source_code: str, target_code: str, amount: int | float):
         """Convert a currency to another"""
         res: dict | None = await util.get(url=f"https://api.exchangerate-api.com/v4/latest/{source_code}")
         if not res or not res.get("rates", None):
@@ -414,34 +414,5 @@ class Util(commands.Cog):
             return await util.throw_error(ctx, text="That money code doesn't exist")
         await ctx.send(f":scales: **{source_code.upper()}** to **{target_code.upper()}**\n\n> :coin: **{source_code.upper()}:** {amount}\n> :coin: **{target_code.upper()}:** {round(key * amount, 6)}")
     
-    @commands.cooldown(1, 5, commands.BucketType.member)
-    @commands.hybrid_command(name="api", aliases=["apy"], disabled=True, hidden=True)
-    @discord.app_commands.describe(query="The route to search in the official api (APY)")
-    async def apy(self, ctx: commands.Context, query: str):
-        """Search something in the APY documentation"""
-        res: dict | None = await util.get(url=f"{self.api_domain}/json/route", params={"query": query})
-        if not res or not res.get("data", None):
-            return await util.throw_error(ctx, text='I was unable to find something related to that')
-        res: dict = res.get("data")
-        await ctx.defer()
-        emb = discord.Embed(colour=3447003)
-        emb.set_author(name="APY (Stable)", icon_url="https://i.imgur.com/onn7Vbn.png")
-        emb.set_footer(text=ctx.author.name, icon_url=ctx.author.display_avatar)
-        emb.set_thumbnail(url="https://i.imgur.com/onn7Vbn.png")
-        if res.get("title", None):
-            emb.title = res.get("title")
-            emb.description = "API Schema"
-            fixed = [f"**{x[0]}: `{x[1].get('type', 'any')}`**" for x in res.items()]
-            emb.add_field(name="Properties", value="\n".join(fixed))
-            await ctx.send(embed=emb)
-        else:
-            method = res[res.keys()[0]]
-            res = res.get(method, None)
-            params = [f"**{x['name']}: `{x['schema']['type']}{'?' if not x['required'] else '*'}`**. ({x['in'][0].upper()}.) {x['description']}" for x in res.get("parameters", [])]
-            params = "\n".join(params) if len(params) else ''
-            emb.description = f'{res.get("description")}\n{params}'
-            emb.add_field(name="Returns", value=f'{res["responses"]["200"]}')
-            await ctx.send(embed=emb)
-
 async def setup(bot: commands.Bot):
     await bot.add_cog(Util(bot))

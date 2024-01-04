@@ -55,7 +55,7 @@ bot = diM(
     strip_after_prefix=True,
     intents=intents,
     help_command=None,
-    activity=discord.Activity(type=discord.ActivityType.listening, name="new update!")
+    activity=discord.Activity(type=discord.ActivityType.listening, name="new year, new mental issues")
     )
 
 util = coreback.Util(bot)
