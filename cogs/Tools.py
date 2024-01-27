@@ -221,6 +221,7 @@ class Tools(commands.Cog):
     
     @commands.cooldown(1, 60, commands.BucketType.guild)
     @commands.has_guild_permissions(manage_roles=True)
+    @commands.bot_has_permissions(embed_links=True)
     @dropdown.command(name="create", aliases=["new"])
     @discord.app_commands.describe(channel="The channel to send the void dropdown", description="The description for this dropdown")
     async def dropdown_create(self, ctx: commands.Context, channel: discord.TextChannel, *, description: str):
@@ -373,6 +374,40 @@ class Tools(commands.Cog):
             return await util.throw_error(ctx, text="The provided message is not a dropdown sent by me, create one using: **`/dropdown create`**")
         message.embeds[0].description = description[:2000]
         await message.edit(embed=message.embeds[0])
+        await util.throw_fine(ctx, text="Your changes has been saved successfully!")
+
+    @commands.cooldown(1, 5, commands.BucketType.guild)
+    @commands.has_guild_permissions(manage_roles=True)
+    @dropdown.command(name="singlerole")
+    @discord.app_commands.describe(url="The existing dropdown message URL")
+    async def dropdown_singlerole(self, ctx: commands.Context, url: str):
+        """Set a dropdown message as a singlerole system"""
+        links = re.findall("channels\/[\d]+\/[\d]+\/[\d]+", url)
+        if not links:
+            return await util.throw_error(ctx, text="Invalid message URL provided in first parameter")
+        g, c, m = links[0].split("/")[1:]
+        if int(g) != ctx.guild.id:
+            return await util.throw_error(ctx, text="That message is not in this server")
+        try:
+            channel = self.bot.get_channel(int(c)) or await self.bot.fetch_channel(int(c))
+            if not util.is_text(channel):
+                return await util.throw_error(ctx, text="Invalid channel type")
+        except:
+            return await util.throw_error(ctx, text="I was unable to find that channel")
+        try:
+            message = await channel.fetch_message(m)
+        except:
+            return await util.throw_error(ctx, text="I was unable to find that message")
+        if message.author.id != self.bot.user.id and not len(message.embeds) and message.embeds[0].title != "Dropdown roles":
+            return await util.throw_error(ctx, text="The provided message is not a dropdown sent by me, create one using: **`/dropdown create`**")
+        view = discord.ui.View().from_message(message)
+        child: discord.ui.Select | None = view.children[0] if len(view.children) else None
+        if not child or not len(child.options):
+            return await util.throw_error(ctx, text="The dropdown doesn't have roles yet")
+        child.max_values = 1
+        view.children[0] = child
+        view.children[0].custom_id = "dropdown"
+        await message.edit(view=view if len(child.options) else None)
         await util.throw_fine(ctx, text="Your changes has been saved successfully!")
     
     @commands.cooldown(1, 30, commands.BucketType.guild)
