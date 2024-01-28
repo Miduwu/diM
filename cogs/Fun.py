@@ -51,7 +51,7 @@ class Funny(commands.Cog):
         await ctx.send(file=discord.File(fp=b, filename="deepfry.png"))
 
     @commands.cooldown(1, 7, commands.BucketType.member)
-    @images.command(name="thisis")
+    @images.command(name="spotify")
     @discord.app_commands.describe(user="Select a user")
     async def thisis(self, ctx: commands.Context, user: discord.User = None):
         """Make a this is spotify image card"""
@@ -80,6 +80,25 @@ class Funny(commands.Cog):
         b = await util.download_bytes(f"{self.api_domain}/image/communist?image={user.display_avatar}")
         await ctx.send(file=discord.File(fp=b, filename="communsim.png"))
     
+    @commands.cooldown(1, 7, commands.BucketType.member)
+    @images.command(name="sus")
+    @discord.app_commands.describe(user="Select a user")
+    async def sus(self, ctx: commands.Context, user: discord.User = None):
+        """Make an among us image"""
+        if user is None:
+            user = ctx.author
+        b = await util.download_bytes(f"{self.api_domain}/image/sus?image={user.display_avatar}")
+        await ctx.send(file=discord.File(fp=b, filename="sus.png"))
+    
+    @commands.cooldown(1, 7, commands.BucketType.member)
+    @images.command(name="pixel")
+    @discord.app_commands.describe(user="Select a user")
+    async def pixel(self, ctx: commands.Context, user: discord.User = None):
+        """Make a pixel image"""
+        if user is None:
+            user = ctx.author
+        b = await util.download_bytes(f"{self.api_domain}/image/pixel?image={user.display_avatar}&amount=10")
+        await ctx.send(file=discord.File(fp=b, filename="pixel.png"))
 
     @commands.hybrid_group(name="text")
     async def texts(self, ctx):

@@ -413,6 +413,33 @@ class Util(commands.Cog):
         if not key:
             return await util.throw_error(ctx, text="That money code doesn't exist")
         await ctx.send(f":scales: **{source_code.upper()}** to **{target_code.upper()}**\n\n> :coin: **{source_code.upper()}:** {amount}\n> :coin: **{target_code.upper()}:** {round(key * amount, 6)}")
+
+    @commands.cooldown(1, 5, commands.BucketType.member)
+    @commands.hybrid_command(name="country")
+    @discord.app_commands.describe(country_name="The country name")
+    async def country(self, ctx: commands.Context, *, country_name: str):
+        """Get information about a country using its name"""
+        res: dict | None = await util.get(url=f"https://api.munlai.me/json/country", params={"query": country_name})
+        if not res or not res.get("data", None).get("name", None):
+            return await util.throw_error(ctx, text="I was unable to find that country")
+        data = res["data"]
+        lan = list(data["languages"].keys())[0]
+        emb = discord.Embed(colour=3447003, title=f'{data["name"]["official"]} ({data["name"]["nativeName"][lan]["common"]})', url=data["maps"]["googleMaps"])
+        emb.description = f'> Continent(s): {"/".join(data["continents"])}\n> Language: {data["languages"][lan]}'
+        emb.add_field(name="Population", value=str(data["population"]), inline=True)
+        emb.add_field(name="Area", value=str(data["area"]), inline=True)
+        emb.add_field(name="Capital", value=data["capital"][0], inline=True)
+        c = list(data["currencies"].keys())[0]
+        emb.add_field(name="Currency", value=f'{data["currencies"][c]["name"]} ({c})', inline=True)
+        emb.add_field(name="Lag/lng", value=str(data["capitalInfo"]["latlng"]), inline=True)
+        emb.add_field(name="Emoji", value=data["flag"], inline=True)
+        emb.add_field(name="Flag", value=data["flags"]["alt"] if "alt" in data["flags"] else "No alt text for the flag")
+        emb.set_image(url=data["flags"]["png"])
+        emb.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar)
+        emb.set_footer(text=self.bot.user.name, icon_url=self.bot.user.display_avatar)
+        emb.set_thumbnail(url=data["coatOfArms"]["png"])
+        await ctx.send(embed=emb)
+
     
 async def setup(bot: commands.Bot):
     await bot.add_cog(Util(bot))

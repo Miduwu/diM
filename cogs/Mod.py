@@ -99,8 +99,10 @@ class Mod(commands.Cog):
         elif 1 > amount:
             return await util.throw_error(ctx, text="Invalid amount provide, try with +1")
         if ctx.interaction:
-            await ctx.send(content="Deleting messages...", ephemeral=True, delete_after=5.0)
+            await ctx.send(content="Deleting messages...", ephemeral=True, delete_after=4.0)
         try:
+            if not ctx.interaction:
+                await ctx.message.delete()
             if not member:
                 messages = await ctx.channel.purge(limit=amount)
                 await ctx.channel.send(f"**{len(messages)}** message(s) has been deleted successfully! <:blobheart:1011458084239056977>", delete_after=7.0)
