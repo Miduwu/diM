@@ -117,6 +117,23 @@ class Listeners(commands.Cog):
                 await channel.send(content=final if final else None, embed=d.embed)
             except:
                 pass
+        async def autorole(m: discord.Member):
+            print(1)
+            _roles_ = await db.get(table="guilds", id=m.guild.id, path="autoroles") or []
+            if not len(_roles_):
+                return
+            try:
+                for r in _roles_:
+                    try:
+                        role = m.guild.get_role(r)
+                        if role:
+                            await m.add_roles(role, reason="Tokyo Autoroles")
+                    except:
+                        pass
+            except:
+                pass
+
+        await autorole(member)
         await welcome(member)
     
     @commands.Cog.listener()

@@ -192,7 +192,7 @@ class Funny(commands.Cog):
         r = random.randint(1, 101)
         embed = discord.Embed(colour=3447003)
         embed.description = f"**{user1.name}** & **{user2.name}** are **{r}%** compatible! :heart:"
-        embed.set_image(url=f"{self.api_domain}/image/ship?image={user1.display_avatar}&image2={user2.display_avatar}&type={1 if r > 50 else 2}")
+        embed.set_image(url=f"{self.api_domain}/image/ship?image1={user1.display_avatar}&image2={user2.display_avatar}&type={1 if r > 50 else 2}")
         await ctx.send(embed=embed)
 
 async def setup(bot: commands.Bot):

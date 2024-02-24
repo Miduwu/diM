@@ -439,6 +439,49 @@ class Util(commands.Cog):
         emb.set_footer(text=self.bot.user.name, icon_url=self.bot.user.display_avatar)
         emb.set_thumbnail(url=data["coatOfArms"]["png"])
         await ctx.send(embed=emb)
+    
+    @commands.cooldown(1, 18, commands.BucketType.user)
+    @commands.hybrid_command(name="chat", aliases=["ai", "chatgpt", "ask"], example="t!chat Tell me a joke")
+    @discord.app_commands.describe(prompt="The prompt to interact with chatgpt")
+    async def chatgpt(self, ctx: commands.Context, *, prompt: str):
+        """Asks something to ChatGPT"""
+        if ctx.interaction:
+            await ctx.defer()
+        else:
+            await ctx.message.add_reaction("⏰")
+        res = await util.get(url="https://celestialapi.com/models/gpt4", params={"prompt": prompt[:2000]})
+        if not res or "response" not in res or "openai" not in res["response"]:
+            return await util.throw_error(ctx, text='I was unable to pass that question')
+        embed1 = discord.Embed(colour=3447003)
+        embed1.set_author(name="Artificial Intelligence")
+        embed1.description = res["response"]["openai"]["generated_text"][:3000]
+        embed1.set_footer(text=self.bot.user.name, icon_url=self.bot.user.display_avatar)
+        await ctx.send(embed=embed1, content=f"{ctx.author.mention}, here's your answer!")
+        if ctx.message:
+            await ctx.message.clear_reactions()
+    
+    @commands.cooldown(1, 30, commands.BucketType.user)
+    @commands.hybrid_command(name="dream", aliases=["imagine"], example="t!dream An astronaut dog painting the earth")
+    @discord.app_commands.describe(prompt="The prompt to interact with dall-e")
+    async def dream(self, ctx: commands.Context, *, prompt: str):
+        """Generates an image from a text prompt using DALL-E"""
+        try:
+            if ctx.interaction:
+                await ctx.defer()
+            else:
+                await ctx.message.add_reaction("⏰")
+            res = await util.get(url="https://celestialapi.com/models/dalle-3", params={"prompt": prompt[:2000]})
+            if not res or "response" not in res or "openai" not in res["response"] or not len(res["response"]["openai"]["items"]):
+                return await util.throw_error(ctx, text='I was unable to pass that question')
+            emb = discord.Embed(colour=3447003, description=f"> **{prompt[:500] + '...' if len(prompt) >= 500 else prompt}**")
+            emb.set_author(name="Artificial Intelligence")
+            emb.set_footer(text=self.bot.user.name, icon_url=self.bot.user.display_avatar)
+            emb.set_image(url=res["response"]["openai"]["items"][0]["image_resource_url"])
+            await ctx.send(embed=emb, content=f"{ctx.author.mention}, here's your image!")
+            if ctx.message:
+                await ctx.message.clear_reactions()
+        except Exception as e:
+            await ctx.send("Ops, something wrong happened")
 
     
 async def setup(bot: commands.Bot):

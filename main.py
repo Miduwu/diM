@@ -55,11 +55,10 @@ bot = diM(
     strip_after_prefix=True,
     intents=intents,
     help_command=None,
-    activity=discord.Activity(type=discord.ActivityType.listening, name="new year, new mental issues")
+    activity=discord.Activity(type=discord.ActivityType.listening, name="use /help or t!help")
     )
 
 util = coreback.Util(bot)
-
 interpreter = inter.Interpreter(util)
 
 @bot.check

@@ -169,7 +169,7 @@ class Tools(commands.Cog):
     
     @commands.has_permissions(administrator=True)
     @commands.cooldown(1, 180, commands.BucketType.member)
-    @tags.command(name="purge")
+    @tags.command(name="purge", aliases=["reset"])
     async def tag_purge(self, ctx: commands.Context):
         """Purge all the server tags"""
         await ctx.defer()
@@ -607,6 +607,66 @@ class Tools(commands.Cog):
             return await util.throw_error(ctx, text="Invalid range provided, it must be lower than 20 and higher than 2")
         await mongodb.set(table="guilds", id=ctx.guild.id, path="starboard.stars", value=stars)
         await util.throw_fine(ctx, text=f"I've set **{stars}** as the required stars for a message in the starboard")
+
+    @commands.hybrid_group(name="autoroles")
+    async def autoroles(self, ctx: commands.Context):
+        """Manage the autoroles in the server"""
+        ...
+
+    @autoroles.command(name="add")
+    @commands.has_guild_permissions(manage_roles=True)
+    @commands.bot_has_permissions(manage_roles=True)
+    @discord.app_commands.describe(role="The role to add when someone joins the server")
+    async def autoroles_add(self, ctx: commands.Context, role: discord.Role):
+        """Add a new autorole"""
+        _roles_ = await mongodb.get(table="guilds", id=ctx.guild.id, path="autoroles") or []
+        if len(_roles_) >= 50:
+            return await util.throw_error(ctx, text="This server has reached the autoroles limit")
+        if next((r for r in _roles_ if r == role.id), None):
+            return await util.throw_error(ctx, text=f"That autorole already exists")
+        _roles_.append(role.id)
+        await mongodb.set(table="guilds", id=ctx.guild.id, path="autoroles", value=_roles_)
+        await util.throw_fine(ctx, text=f"**{role.name}** was added successfully!", bold=False)
+
+    @autoroles.command(name="remove")
+    @commands.has_guild_permissions(manage_roles=True)
+    @commands.bot_has_permissions(manage_roles=True)
+    @discord.app_commands.describe(role="The role to remove from the autoroles")
+    async def autoroles_remove(self, ctx: commands.Context, role: discord.Role):
+        """Remove an autorole"""
+        _roles_ = await mongodb.get(table="guilds", id=ctx.guild.id, path="autoroles") or []
+        if role.id not in _roles_:
+            return await util.throw_error(ctx, "That role isn't in the autoroles list")
+        _roles_ =  [r for r in _roles_ if r != role.id]
+        await mongodb.set(table="guilds", id=ctx.guild.id, path="autoroles", value=_roles_)
+        await util.throw_fine(ctx, f"Removed **{role.name}** from the autoroles list")
+
+    @autoroles.command(name="purge", aliases=["reset"])
+    @commands.has_guild_permissions(manage_roles=True)
+    @commands.bot_has_permissions(manage_roles=True)
+    async def autoroles_purge(self, ctx: commands.Context):
+        """Purge all autoroles in this server"""
+        await ctx.defer()
+        v = Confirmation(ctx=ctx)
+        v.message = await ctx.send("Are you sure to delete **EVERY** autorole in this server?", view=v)
+        async def f(i: discord.Interaction):
+            await i.response.defer()
+            await mongodb.delete(table="guilds", id=ctx.guild.id, path="autoroles")
+            await util.throw_fine(ctx, "Autoroles have been reset.")
+        v.call_me = f
+    
+    @commands.cooldown(1, 7, commands.BucketType.member)
+    @autoroles.command(name="list")
+    async def tag_list(self, ctx: commands.Context):
+        """View the server autoroles"""
+        await ctx.defer()
+        _roles_ = await mongodb.get(table="guilds", id=ctx.guild.id, path="autoroles") or []
+        if not len(_roles_):
+            return await util.throw_error(ctx, text="This server doesn't have tags yet")
+        emb = discord.Embed(colour=3447003, description="\n".join([f'<@&{r}>' for r in _roles_]), title="Autoroles")
+        emb.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar)
+
+        await ctx.send(embed=emb)
 
 
 async def setup(bot: commands.Bot):
