@@ -634,6 +634,8 @@ class Tools(commands.Cog):
     @discord.app_commands.describe(role="The role to remove from the autoroles")
     async def autoroles_remove(self, ctx: commands.Context, role: discord.Role):
         """Remove an autorole"""
+        if role.position >= ctx.me.top_role.position:
+            return await util.throw_error(ctx, text="The position of that role is higher than my top role, consider moving my role above the autorole you want to set")
         _roles_ = await mongodb.get(table="guilds", id=ctx.guild.id, path="autoroles") or []
         if role.id not in _roles_:
             return await util.throw_error(ctx, "That role isn't in the autoroles list")

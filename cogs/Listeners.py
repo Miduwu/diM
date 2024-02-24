@@ -118,7 +118,6 @@ class Listeners(commands.Cog):
             except:
                 pass
         async def autorole(m: discord.Member):
-            print(1)
             _roles_ = await db.get(table="guilds", id=m.guild.id, path="autoroles") or []
             if not len(_roles_):
                 return

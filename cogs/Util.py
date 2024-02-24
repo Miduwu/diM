@@ -460,7 +460,7 @@ class Util(commands.Cog):
         if ctx.message:
             await ctx.message.clear_reactions()
     
-    @commands.cooldown(1, 30, commands.BucketType.user)
+    @commands.cooldown(1, 60, commands.BucketType.channel)
     @commands.hybrid_command(name="dream", aliases=["imagine"], example="t!dream An astronaut dog painting the earth")
     @discord.app_commands.describe(prompt="The prompt to interact with dall-e")
     async def dream(self, ctx: commands.Context, *, prompt: str):
@@ -478,11 +478,10 @@ class Util(commands.Cog):
             emb.set_footer(text=self.bot.user.name, icon_url=self.bot.user.display_avatar)
             emb.set_image(url=res["response"]["openai"]["items"][0]["image_resource_url"])
             await ctx.send(embed=emb, content=f"{ctx.author.mention}, here's your image!")
-            if ctx.message:
+            if not ctx.interaction:
                 await ctx.message.clear_reactions()
-        except Exception as e:
+        except:
             await ctx.send("Ops, something wrong happened")
-
     
 async def setup(bot: commands.Bot):
     await bot.add_cog(Util(bot))
